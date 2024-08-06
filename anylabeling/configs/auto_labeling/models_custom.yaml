@@ -1,0 +1,2 @@
+- model_name: "retinanet-license-plate-r20240805"
+  config_file: ":/m_retina_license_plate_mobilenetv3.yaml"

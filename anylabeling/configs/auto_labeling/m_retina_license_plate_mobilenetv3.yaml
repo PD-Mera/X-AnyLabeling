@@ -1,0 +1,18 @@
+type: retinanet
+name: retinanet-license-plate-r20240805
+display_name: Retina License Plate MobilenetV3
+model_path: F:\Code\X-AnyLabeling\models\retina_license_plate_mobilenetv3.onnx
+draw_det_box: True
+target_size: 224
+max_size: 448
+priorbox_min_sizes: [[16, 32], [48, 96], [160, 224]]
+nms_threshold: 0.65
+confidence_threshold: 0.45
+classes:
+  - license_plate
+kpt_classes:
+  - top_left_corner
+  - top_right_corner
+  - center_corner
+  - bottom_left_corner
+  - bottom_right_corner
