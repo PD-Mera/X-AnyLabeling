@@ -16,3 +16,8 @@ kpt_classes:
   - center_corner
   - bottom_left_corner
   - bottom_right_corner
+  - top_left_corner_cover
+  - top_right_corner_cover
+  - center_corner_cover
+  - bottom_left_corner_cover
+  - bottom_right_corner_cover

@@ -29,7 +29,7 @@ Add custom model run scripts in `_load_model` function of `ModelManager`
 ``` python
 ...
 elif model_config["type"] == "retinanet":
-    from .retina_license_plate_mobilenetv3 import RetinaLicensePlateMobilenetV3
+    from .m_retina_license_plate_mobilenetv3 import RetinaLicensePlateMobilenetV3
 
     try:
         model_config["model"] = RetinaLicensePlateMobilenetV3(
