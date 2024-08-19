@@ -1,0 +1,10 @@
+type: yolov8
+name: logo-detection-yolov8m-r20240817
+display_name: Logo Detection (3 classes) 
+model_path: ./mcustom/custom_models/logo-detection-cb-tcb-vja.onnx
+nms_threshold: 0.45
+confidence_threshold: 0.25
+classes:
+  - vcb
+  - tcb
+  - vja

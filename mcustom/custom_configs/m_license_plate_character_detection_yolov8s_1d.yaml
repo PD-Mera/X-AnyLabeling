@@ -1,0 +1,42 @@
+type: yolov8
+name: license-plate-character-detection-yolov8s-1d-r20240814
+display_name: License Plate Character Detection YoloV8s (1D)
+model_path: ./mcustom/custom_models/license-plate-character-detection-yolov8s-pre3dto1d.onnx
+nms_threshold: 0.45
+confidence_threshold: 0.25
+classes:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - A
+  - B
+  - C
+  - D
+  - E
+  - F
+  - G
+  - H
+  - I
+  - J
+  - K
+  - L
+  - M
+  - N
+  - P
+  - Q
+  - R
+  - S
+  - T
+  - U
+  - V
+  - W
+  - X
+  - Y
+  - Z

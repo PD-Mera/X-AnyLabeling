@@ -1,0 +1,18 @@
+type: retinanet
+name: retinanet-license-plate-resnet18-r20240815
+display_name: Retina License Plate Resnet18
+model_path: ./mcustom/custom_models/retina_license_plate_resnet18.onnx
+draw_det_box: True
+target_size: 224
+max_size: 448
+priorbox_min_sizes: [[7, 14], [28, 56], [112, 224]]
+nms_threshold: 0.4
+confidence_threshold: 0.6
+classes:
+  - license_plate
+kpt_classes:
+  - top_left_corner
+  - top_right_corner
+  - center_corner
+  - bottom_left_corner
+  - bottom_right_corner
