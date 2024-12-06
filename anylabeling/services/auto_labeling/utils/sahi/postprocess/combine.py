@@ -205,8 +205,8 @@ def greedy_nmm(
 
         # Keep the boxes with IoU/IoS less than thresh_iou
         mask = match_metric_value < match_threshold
-        matched_box_indices = order[np.where(mask == False)[0]]
-        unmatched_indices = order[np.where(mask == True)[0]]
+        matched_box_indices = order[np.where(mask == False)[0]]  # noqa: E712
+        unmatched_indices = order[np.where(mask == True)[0]]  # noqa: E712
 
         # Update box pool
         order = unmatched_indices[np.argsort(scores[unmatched_indices])]

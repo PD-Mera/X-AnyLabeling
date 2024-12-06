@@ -1,13 +1,13 @@
-import logging
 import os
-
 import cv2
 import numpy as np
+
 from PyQt5 import QtCore
 from PyQt5.QtCore import QCoreApplication
 
 from anylabeling.app_info import __preferred_device__
 from anylabeling.views.labeling.shape import Shape
+from anylabeling.views.labeling.logger import logger
 from anylabeling.views.labeling.utils.opencv import qt_img_to_rgb_cv_img
 from .model import Model
 from .types import AutoLabelingResult
@@ -58,7 +58,8 @@ class RTDETRv2(Model):
 
     def set_auto_labeling_conf(self, value):
         """set auto labeling confidence threshold"""
-        self.conf_thres = value
+        if value > 0:
+            self.conf_thres = value
 
     def set_auto_labeling_preserve_existing_annotations_state(self, state):
         """Toggle the preservation of existing annotations based on the checkbox state."""
@@ -118,8 +119,8 @@ class RTDETRv2(Model):
         try:
             image = qt_img_to_rgb_cv_img(image, image_path)
         except Exception as e:  # noqa
-            logging.warning("Could not inference model")
-            logging.warning(e)
+            logger.warning("Could not inference model")
+            logger.warning(e)
             return []
 
         blob = self.preprocess(image)

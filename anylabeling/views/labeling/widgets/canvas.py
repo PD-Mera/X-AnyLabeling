@@ -307,8 +307,8 @@ class Canvas(
                 return
 
             if self.create_mode == "rectangle":
-                shape_width = abs(self.current[0].x() - pos.x())
-                shape_height = abs(self.current[0].y() - pos.y())
+                shape_width = int(abs(self.current[0].x() - pos.x()))
+                shape_height = int(abs(self.current[0].y() - pos.y()))
                 self.show_shape.emit(shape_width, shape_height, pos)
 
             color = QtGui.QColor(0, 0, 255)
@@ -386,8 +386,8 @@ class Canvas(
                 if self.h_hape.shape_type == "rectangle":
                     p1 = self.h_hape[0]
                     p2 = self.h_hape[2]
-                    shape_width = abs(p2.x() - p1.x())
-                    shape_height = abs(p2.y() - p1.y())
+                    shape_width = int(abs(p2.x() - p1.x()))
+                    shape_height = int(abs(p2.y() - p1.y()))
                     self.show_shape.emit(shape_width, shape_height, pos)
             elif self.selected_shapes and self.prev_point:
                 self.override_cursor(CURSOR_MOVE)
@@ -397,8 +397,8 @@ class Canvas(
                 if self.selected_shapes[-1].shape_type == "rectangle":
                     p1 = self.selected_shapes[-1][0]
                     p2 = self.selected_shapes[-1][2]
-                    shape_width = abs(p2.x() - p1.x())
-                    shape_height = abs(p2.y() - p1.y())
+                    shape_width = int(abs(p2.x() - p1.x()))
+                    shape_height = int(abs(p2.y() - p1.y()))
                     self.show_shape.emit(shape_width, shape_height, pos)
             return
 
@@ -476,8 +476,8 @@ class Canvas(
                 if shape.shape_type == "rectangle":
                     p1 = self.h_hape[0]
                     p2 = self.h_hape[2]
-                    shape_width = abs(p2.x() - p1.x())
-                    shape_height = abs(p2.y() - p1.y())
+                    shape_width = int(abs(p2.x() - p1.x()))
+                    shape_height = int(abs(p2.y() - p1.y()))
                     self.show_shape.emit(shape_width, shape_height, pos)
                 break
         else:  # Nothing found, clear highlights, reset state.
@@ -511,7 +511,7 @@ class Canvas(
         self.moving_shape = True  # Save changes
 
     # QT Overload
-    def mousePressEvent(self, ev):
+    def mousePressEvent(self, ev):  # noqa: C901
         """Mouse press event"""
         if self.is_loading:
             return
@@ -1124,7 +1124,7 @@ class Canvas(
             for shape in self.shapes:
                 try:
                     linking_pairs += shape.kie_linking
-                except:
+                except Exception:
                     pass
 
                 if shape.group_id is None or shape.shape_type not in [

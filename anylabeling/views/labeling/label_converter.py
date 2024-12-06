@@ -35,6 +35,8 @@ class LabelConverter:
                 self.has_vasiable = data["has_visible"]
                 for class_name, keypoint_name in data["classes"].items():
                     self.pose_classes[class_name] = keypoint_name
+                self.classes = list(self.pose_classes.keys())
+            logger.info(f"Loading pose classes: {self.pose_classes}")
 
     def reset(self):
         self.custom_data = dict(
@@ -304,7 +306,7 @@ class LabelConverter:
                 dst_img = np.rot90(dst_img)
             return dst_img
         except Exception as e:
-            print(e)
+            logger.error(e)
 
     def yolo_obb_to_custom(self, input_file, output_file, image_file):
         self.reset()
@@ -529,9 +531,15 @@ class LabelConverter:
         with open(input_file, "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        if not self.classes:
-            for cat in data["categories"]:
-                self.classes.append(cat["name"])
+        if mode in ["rectangle", "polygon"]:
+            if not self.classes:
+                for cat in data["categories"]:
+                    self.classes.append(cat["name"])
+        elif mode == "pose":
+            if not self.pose_classes:
+                for cat in data["categories"]:
+                    self.pose_classes[cat["name"]] = cat["keypoints"]
+                self.classes = list(self.pose_classes.keys())
 
         total_info, label_info = {}, {}
 
@@ -547,10 +555,11 @@ class LabelConverter:
                 "imagePath": osp.basename(dic_info["file_name"]),
                 "shapes": [],
             }
-
+        image_ids = {}
         for dic_info in data["annotations"]:
             difficult = bool(int(str(dic_info.get("ignore", "0"))))
             label = label_info[dic_info["category_id"]]
+            image_id = dic_info["image_id"]
 
             if mode == "rectangle":
                 shape_type = "rectangle"
@@ -567,6 +576,17 @@ class LabelConverter:
                     [xmax, ymax],
                     [xmin, ymax],
                 ]
+                shape = {
+                    "label": label,
+                    "shape_type": shape_type,
+                    "flags": {},
+                    "points": points,
+                    "group_id": None,
+                    "description": None,
+                    "difficult": difficult,
+                    "attributes": {},
+                }
+                total_info[dic_info["image_id"]]["shapes"].append(shape)
             elif mode == "polygon":
                 shape_type = "polygon"
                 segmentation = dic_info["segmentation"][0]
@@ -575,19 +595,73 @@ class LabelConverter:
                 points = []
                 for i in range(0, len(segmentation), 2):
                     points.append([segmentation[i], segmentation[i + 1]])
-
-            shape = {
-                "label": label,
-                "shape_type": shape_type,
-                "flags": {},
-                "points": points,
-                "group_id": None,
-                "description": None,
-                "difficult": difficult,
-                "attributes": {},
-            }
-
-            total_info[dic_info["image_id"]]["shapes"].append(shape)
+                shape = {
+                    "label": label,
+                    "shape_type": shape_type,
+                    "flags": {},
+                    "points": points,
+                    "group_id": None,
+                    "description": None,
+                    "difficult": difficult,
+                    "attributes": {},
+                }
+                total_info[dic_info["image_id"]]["shapes"].append(shape)
+            elif mode == "pose":
+                if image_id not in image_ids:
+                    image_ids[image_id] = 0
+                else:
+                    image_ids[image_id] += 1
+                # bbox
+                shape_type = "rectangle"
+                bbox = dic_info["bbox"]
+                xmin = bbox[0]
+                ymin = bbox[1]
+                width = bbox[2]
+                height = bbox[3]
+                xmax = xmin + width
+                ymax = ymin + height
+                points = [
+                    [xmin, ymin],
+                    [xmax, ymin],
+                    [xmax, ymax],
+                    [xmin, ymax],
+                ]
+                shape = {
+                    "label": label,
+                    "shape_type": shape_type,
+                    "flags": {},
+                    "points": points,
+                    "group_id": image_ids[image_id],
+                    "description": None,
+                    "difficult": difficult,
+                    "attributes": {},
+                }
+                total_info[dic_info["image_id"]]["shapes"].append(shape)
+                # keypoints
+                keypoints = dic_info["keypoints"]
+                kpt_names = self.pose_classes[label]
+                if len(kpt_names) * 3 == len(keypoints):
+                    has_vasiable = True
+                else:
+                    has_vasiable = False
+                interval = 3 if has_vasiable else 2
+                for i in range(0, len(keypoints), interval):
+                    x = keypoints[i]
+                    y = keypoints[i + 1]
+                    flag = keypoints[i + 2] if has_vasiable else 0
+                    if x == 0 and y == 0 and flag == 0:
+                        continue
+                    shape = {
+                        "label": kpt_names[i // interval],
+                        "shape_type": "point",
+                        "flags": {},
+                        "points": [[x, y]],
+                        "group_id": image_ids[image_id],
+                        "description": None,
+                        "difficult": flag == 1,
+                        "attributes": {},
+                    }
+                    total_info[dic_info["image_id"]]["shapes"].append(shape)
 
         for dic_info in total_info.values():
             self.reset()
@@ -806,7 +880,7 @@ class LabelConverter:
                 json.dump(self.custom_data, f, indent=2, ensure_ascii=False)
 
     # Export functions
-    def custom_to_yolo(
+    def custom_to_yolo(  # noqa: C901
         self, input_file, output_file, mode, skip_empty_files=False
     ):
         is_empty_file = True
@@ -876,15 +950,17 @@ class LabelConverter:
                         0 <= p[0] < image_width and 0 <= p[1] < image_height
                         for p in points
                     ):
-                        print(
+                        logger.warning(
                             f"{data['imagePath']}: Skip out of bounds coordinates of {points}!"
                         )
                         continue
                     points = list(chain.from_iterable(points))
                     normalized_coords = [
-                        points[i] / image_width
-                        if i % 2 == 0
-                        else points[i] / image_height
+                        (
+                            points[i] / image_width
+                            if i % 2 == 0
+                            else points[i] / image_height
+                        )
                         for i in range(8)
                     ]
                     x0, y0, x1, y1, x2, y2, x3, y3 = normalized_coords
@@ -896,6 +972,13 @@ class LabelConverter:
                 elif mode == "pose":
                     if shape_type not in ["rectangle", "point"]:
                         continue
+                    if shape["group_id"] is None:
+                        logger.error(
+                            f"group_id is None for {shape} in {input_file}."
+                        )
+                        raise ValueError(
+                            f"group_id is None for {shape} in {input_file}."
+                        )
                     label = shape["label"]
                     points = shape["points"]
                     group_id = int(shape["group_id"])
@@ -951,9 +1034,9 @@ class LabelConverter:
                         # 0: Invisible, 1: Occluded, 2: Visible
                         if name not in keypoints:
                             if self.has_vasiable:
-                                label += f" 0 0 0"
+                                label += " 0 0 0"
                             else:
-                                label += f" 0 0"
+                                label += " 0 0"
                         else:
                             x, y, visible = keypoints[name]
                             x = round((int(x) / image_width), 6)
@@ -962,13 +1045,14 @@ class LabelConverter:
                                 label += f" {x} {y} {visible}"
                             else:
                                 label += f" {x} {y}"
+
                     # Pad the label with zeros to meet
                     # the yolov8-pose model’s training data format requirements
                     for _ in range(max_keypoints - len(kpt_names)):
                         if self.has_vasiable:
-                            label += f" 0 0 0"
+                            label += " 0 0 0"
                         else:
-                            label += f" 0 0"
+                            label += " 0 0"
                     f.write(f"{label}\n")
         return is_empty_file
 
@@ -1053,29 +1137,44 @@ class LabelConverter:
 
         return is_emtpy_file
 
-    def custom_to_coco(self, input_path, output_path, mode):
+    def custom_to_coco(self, image_list, input_path, output_path, mode):
         coco_data = self.get_coco_data()
 
-        for i, class_name in enumerate(self.classes):
-            coco_data["categories"].append(
-                {"id": i + 1, "name": class_name, "supercategory": ""}
-            )
+        if mode in ["rectangle", "polygon"]:
+            for i, class_name in enumerate(self.classes):
+                coco_data["categories"].append(
+                    {"id": i + 1, "name": class_name, "supercategory": ""}
+                )
+        elif mode == "pose":
+            for i, (name, keypoints) in enumerate(self.pose_classes.items()):
+                coco_data["categories"].append(
+                    {
+                        "id": i + 1,
+                        "name": name,
+                        "supercategory": "",
+                        "keypoints": keypoints,
+                        "skeleton": [],
+                    }
+                )
 
         image_id = 0
         annotation_id = 0
+        if mode == "pose":
+            pose_data = {}
 
-        label_file_list = os.listdir(input_path)
-        for file_name in label_file_list:
-            if not file_name.endswith(".json"):
+        for image_file in image_list:
+            image_name = osp.basename(image_file)
+            label_name = osp.splitext(image_name)[0] + ".json"
+            label_file = osp.join(input_path, label_name)
+            if not osp.exists(label_file):
                 continue
             image_id += 1
-            input_file = osp.join(input_path, file_name)
-            with open(input_file, "r", encoding="utf-8") as f:
+            with open(label_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
             coco_data["images"].append(
                 {
                     "id": image_id,
-                    "file_name": data["imagePath"],
+                    "file_name": image_name,
                     "width": data["imageWidth"],
                     "height": data["imageHeight"],
                     "license": 0,
@@ -1084,19 +1183,83 @@ class LabelConverter:
                     "date_captured": "",
                 }
             )
-
             for shape in data["shapes"]:
-                annotation_id += 1
                 label = shape["label"]
                 points = shape["points"]
                 difficult = shape.get("difficult", False)
-                class_id = self.classes.index(label)
                 bbox, segmentation, area = [], [], 0
                 shape_type = shape["shape_type"]
-                if shape_type == "rectangle" and mode in [
-                    "rectangle",
-                    "polygon",
-                ]:
+
+                if mode == "pose":
+                    if shape_type in ["point", "rectangle"]:
+                        label = shape["label"]
+                        points = shape["points"]
+                        group_id = int(shape["group_id"])
+                        if group_id not in pose_data:
+                            pose_data[group_id] = {
+                                "rectangle": [],
+                                "keypoints": {},
+                            }
+                        if shape_type == "rectangle":
+                            if len(points) == 2:
+                                points = rectangle_from_diagonal(points)
+                            pose_data[group_id]["rectangle"] = points
+                            pose_data[group_id]["box_label"] = label
+                        else:
+                            x, y = points[0]
+                            difficult = shape.get("difficult", False)
+                            visible = 1 if difficult is True else 2
+                            pose_data[group_id]["keypoints"][label] = [
+                                x,
+                                y,
+                                visible,
+                            ]
+                elif mode in ["rectangle", "polygon"]:
+                    if shape_type == "rectangle" and mode in [
+                        "rectangle",
+                        "polygon",
+                    ]:
+                        annotation_id += 1
+                        if len(points) == 2:
+                            logger.warning(
+                                "UserWarning: Diagonal vertex mode is deprecated in X-AnyLabeling release v2.2.0 or later.\n"
+                                "Please update your code to accommodate the new four-point mode."
+                            )
+                            points = rectangle_from_diagonal(points)
+                        x_min = min(points[0][0], points[2][0])
+                        y_min = min(points[0][1], points[2][1])
+                        x_max = max(points[0][0], points[2][0])
+                        y_max = max(points[0][1], points[2][1])
+                        width = x_max - x_min
+                        height = y_max - y_min
+                        bbox = [x_min, y_min, width, height]
+                        area = width * height
+                    elif shape_type == "polygon" and mode == "polygon":
+                        annotation_id += 1
+                        for point in points:
+                            segmentation += point
+                        bbox = self.get_min_enclosing_bbox(segmentation)
+                        area = self.calculate_polygon_area(segmentation)
+                        segmentation = [segmentation]
+                    class_id = self.classes.index(label)
+                    annotation = {
+                        "id": annotation_id,
+                        "image_id": image_id,
+                        "category_id": class_id + 1,
+                        "bbox": bbox,
+                        "area": area,
+                        "iscrowd": 0,
+                        "ignore": int(difficult),
+                        "segmentation": segmentation,
+                    }
+                    coco_data["annotations"].append(annotation)
+
+            if mode == "pose":
+                for data in pose_data.values():
+                    annotation_id += 1
+                    points = data["rectangle"]
+                    box_label = data["box_label"]
+                    class_id = self.classes.index(box_label)
                     if len(points) == 2:
                         logger.warning(
                             "UserWarning: Diagonal vertex mode is deprecated in X-AnyLabeling release v2.2.0 or later.\n"
@@ -1111,25 +1274,40 @@ class LabelConverter:
                     height = y_max - y_min
                     bbox = [x_min, y_min, width, height]
                     area = width * height
-                elif shape_type == "polygon" and mode == "polygon":
-                    for point in points:
-                        segmentation += point
-                    bbox = self.get_min_enclosing_bbox(segmentation)
-                    area = self.calculate_polygon_area(segmentation)
-                    segmentation = [segmentation]
 
-                annotation = {
-                    "id": annotation_id,
-                    "image_id": image_id,
-                    "category_id": class_id + 1,
-                    "bbox": bbox,
-                    "area": area,
-                    "iscrowd": 0,
-                    "ignore": int(difficult),
-                    "segmentation": segmentation,
-                }
+                    keypoints = []
+                    kpt_names = self.pose_classes[box_label]
+                    num_keypoints = 0
+                    for name in kpt_names:
+                        # 0: Invisible, 1: Occluded, 2: Visible
+                        if name not in data["keypoints"]:
+                            if self.has_vasiable:
+                                keypoints += [0, 0, 0]
+                            else:
+                                keypoints += [0, 0]
+                        else:
+                            num_keypoints += 1
+                            x, y, visible = data["keypoints"][name]
+                            x = int(x)
+                            y = int(y)
+                            if self.has_vasiable:
+                                keypoints += [x, y, visible]
+                            else:
+                                keypoints += [x, y]
 
-                coco_data["annotations"].append(annotation)
+                    annotation = {
+                        "id": annotation_id,
+                        "image_id": image_id,
+                        "category_id": class_id + 1,
+                        "bbox": bbox,
+                        "area": area,
+                        "iscrowd": 0,
+                        "keypoints": keypoints,
+                        "num_keypoints": num_keypoints,
+                        "ignore": int(difficult),
+                        "segmentation": [],
+                    }
+                    coco_data["annotations"].append(annotation)
 
         output_file = osp.join(output_path, "instances_default.json")
         with open(output_file, "w", encoding="utf-8") as f:
@@ -1146,7 +1324,7 @@ class LabelConverter:
                 if shape_type != "rotation" or len(points) != 4:
                     continue
                 if not any(0 <= p[0] < w and 0 <= p[1] < h for p in points):
-                    print(
+                    logger.warning(
                         f"{data['imagePath']}: Skip out of bounds coordinates of {points}!"
                     )
                     continue
@@ -1196,41 +1374,36 @@ class LabelConverter:
         if output_format == "grayscale" and polygons:
             # Initialize binary_mask
             binary_mask = np.zeros(image_shape, dtype=np.uint8)
+            # Sort polygons by area to handle overlapping (larger areas first)
+            polygons.sort(key=lambda x: cv2.contourArea(np.array(x["polygon"])), reverse=True)
+
             for item in polygons:
                 label, polygon = item["label"], item["polygon"]
-                mask = np.zeros(image_shape, dtype=np.uint8)
-                cv2.fillPoly(mask, [np.array(polygon, dtype=np.int32)], 1)
                 if label in mapping_color:
-                    mask_mapped = mask * mapping_color[label]
-                else:
-                    mask_mapped = mask
-                binary_mask += mask_mapped
+                    mask = np.zeros(image_shape, dtype=np.uint8)
+                    cv2.fillPoly(mask, [np.array(polygon, dtype=np.int32)], mapping_color[label])
+                    # Only update unassigned pixels (where binary_mask is still 0)
+                    binary_mask = np.where(binary_mask == 0, mask, binary_mask)
+
             cv2.imencode(".png", binary_mask)[1].tofile(output_file)
+
         elif output_format == "rgb" and polygons:
             # Initialize rgb_mask
-            color_mask = np.zeros(
-                (image_height, image_width, 3), dtype=np.uint8
-            )
+            color_mask = np.zeros((image_height, image_width, 3), dtype=np.uint8)
+            polygons.sort(key=lambda x: cv2.contourArea(np.array(x["polygon"])), reverse=True)
+
             for item in polygons:
                 label, polygon = item["label"], item["polygon"]
-                # Create a mask for each polygon
-                mask = np.zeros(image_shape[:2], dtype=np.uint8)
-                cv2.fillPoly(mask, [np.array(polygon, dtype=np.int32)], 1)
-                # Initialize mask_mapped with a default value
-                mask_mapped = mask
-                # Map the mask values using the provided mapping table
                 if label in mapping_color:
                     color = mapping_color[label]
-                    mask_mapped = np.zeros_like(color_mask)
-                    cv2.fillPoly(
-                        mask_mapped, [np.array(polygon, dtype=np.int32)], color
-                    )
-                    color_mask = cv2.addWeighted(
-                        color_mask, 1, mask_mapped, 1, 0
-                    )
-            cv2.imencode(".png", cv2.cvtColor(color_mask, cv2.COLOR_BGR2RGB))[
-                1
-            ].tofile(output_file)
+                    # Create mask for current polygon
+                    curr_mask = np.zeros(image_shape[:2], dtype=np.uint8)
+                    cv2.fillPoly(curr_mask, [np.array(polygon, dtype=np.int32)], 1)
+                    # Only update pixels that haven't been assigned yet
+                    unassigned = np.all(color_mask == 0, axis=2)
+                    color_mask[curr_mask.astype(bool) & unassigned] = color
+
+            cv2.imencode(".png", cv2.cvtColor(color_mask, cv2.COLOR_BGR2RGB))[1].tofile(output_file)
 
     def custom_to_mot(self, input_path, save_path):
         mot_structure = {
@@ -1250,9 +1423,11 @@ class LabelConverter:
 
         label_file_list = os.listdir(input_path)
         label_file_list.sort(
-            key=lambda x: int(osp.splitext(x.rsplit("-", 1)[-1])[0])
-            if osp.splitext(x.rsplit("-", 1)[-1])[0].isdigit()
-            else 0
+            key=lambda x: (
+                int(osp.splitext(x.rsplit("-", 1)[-1])[0])
+                if osp.splitext(x.rsplit("-", 1)[-1])[0].isdigit()
+                else 0
+            )
         )
 
         for label_file_name in label_file_list:
@@ -1323,6 +1498,79 @@ class LabelConverter:
         with open(osp.join(save_path, "gt.txt"), "w", encoding="utf-8") as f:
             for row in mot_structure["gt"]:
                 f.write(",".join(map(str, row)) + "\n")
+
+    def custom_to_mots(self, input_path, save_path):
+        mots_structure = {
+            "sequence": dict(
+                name="MOTS",
+                imDir=osp.basename(save_path),
+                frameRate=30,
+                seqLength=None,
+                imWidth=None,
+                imHeight=None,
+                imExt=None,
+            ),
+            "gt": [],
+        }
+        seg_len, im_widht, im_height, im_ext = 0, None, None, None
+
+        label_file_list = os.listdir(input_path)
+        label_file_list.sort(
+            key=lambda x: (
+                int(osp.splitext(x.rsplit("-", 1)[-1])[0])
+                if osp.splitext(x.rsplit("-", 1)[-1])[0].isdigit()
+                else 0
+            )
+        )
+
+        for label_file_name in label_file_list:
+            if not label_file_name.endswith("json"):
+                continue
+            label_file = os.path.join(input_path, label_file_name)
+            with open(label_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            seg_len += 1
+            if im_widht is None:
+                im_widht = data["imageWidth"]
+            if im_height is None:
+                im_height = data["imageHeight"]
+            if im_ext is None:
+                im_ext = osp.splitext(osp.basename(data["imagePath"]))[-1]
+            frame_id = int(osp.splitext(label_file_name.split("-")[-1])[0])
+            for shape in data["shapes"]:
+                if shape["shape_type"] != "polygon":
+                    continue
+                class_id = int(self.classes.index(shape["label"]))
+                track_id = int(shape["group_id"]) if shape["group_id"] else -1
+                points = shape["points"]
+                gt = [
+                    frame_id,
+                    track_id,
+                    class_id,
+                    im_height,
+                    im_widht,
+                    points,
+                ]
+                mots_structure["gt"].append(gt)
+
+        # Save seqinfo.ini
+        mots_structure["sequence"]["seqLength"] = seg_len
+        mots_structure["sequence"]["imWidth"] = im_widht
+        mots_structure["sequence"]["imHeight"] = im_height
+        mots_structure["sequence"]["imExt"] = im_ext
+        config = configparser.ConfigParser()
+        config.add_section("Sequence")
+        for key, value in mots_structure["sequence"].items():
+            config["Sequence"][key] = str(value)
+        with open(osp.join(save_path, "seqinfo.ini"), "w") as f:
+            config.write(f)
+        # Save gt.txt
+        with open(
+            osp.join(save_path, "custom_gt.txt"), "w", encoding="utf-8"
+        ) as f:
+            for row in mots_structure["gt"]:
+                f.write(" ".join(map(str, row)) + "\n")
 
     def custom_to_odvg(self, image_list, label_path, save_path):
         # Save label_map.json
@@ -1411,7 +1659,7 @@ class LabelConverter:
                     img, np.array(points, np.float32)
                 )
                 if img_crop is None:
-                    print(
+                    logger.warning(
                         f"Can not recognise the detection box in {image_file}. Please change manually"
                     )
                     continue

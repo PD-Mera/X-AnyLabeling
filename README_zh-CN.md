@@ -32,18 +32,29 @@
 
 ## 🥳 新功能
 
-- 2024年8月:
-  - 🤗 预发布[X-AnyLabeling v2.4.0](https://github.com/CVHub520/X-AnyLabeling/releases/tag/v2.4.0)最新版本 🤗
-  - 🔥🔥🔥 支持[tracking-by-det/obb/seg/pose](./examples/multiple_object_tracking/README.md)任务。
-  - ✨✨✨ 支持[Segment-Anything-2](https://github.com/facebookresearch/segment-anything-2)模型。
-  - 👏👏👏 支持[Grounding-SAM2](./docs/zh_cn/model_zoo.md)模型。
-  - 支持[日文字符识别](./anylabeling/configs/auto_labeling/japan_ppocr.yaml)模型。
+- 2024年11月:
+  - 🤗🤗🤗 支持[Florence-2](./examples/multimodal/florence2/README.md)多模态模型。
+  - 🎯🎯🎯 支持基于[UPN](./examples/detection/hbb/README.md)的目标候选框生成模型。
+  - 🌟🌟🌟 支持[YOLOv5-SAHI](./anylabeling/configs/auto_labeling/yolov5s_sahi.yaml)模型。
+- 2024年10月:
+  - ✨✨✨ 支持基于[DocLayout-YOLO](examples/optical_character_recognition/document_layout_analysis/README.md)的文档版面分析模型。
+- 2024年9月:
+  - 发布[X-AnyLabeling v2.4.4](https://github.com/CVHub520/X-AnyLabeling/releases/tag/v2.4.4)版本。
+  - 🚀🚀🚀 支持[YOLO11-Det/OBB/Pose/Seg/Track](https://github.com/ultralytics/ultralytics)模型。
+  - 🧸🧸🧸 支持基于[RMBG v1.4](https://github.com/facebookresearch/segment-anything)的图像抠图功能。
+  - 🔥🔥🔥 支持基于[Segment-Anything-2](https://github.com/CVHub520/segment-anything-2)交互式视频目标追踪功能。【[教程](examples/interactive_video_object_segmentation/README.md) | [B站](https://www.bilibili.com/video/BV1kMpwedE8M/)】
 
 <br>
 
 <details> 
 <summary>点击查看历史更新。</summary>
 
+- 2024年8月:
+  - 发布[X-AnyLabeling v2.4.1](https://github.com/CVHub520/X-AnyLabeling/releases/tag/v2.4.1)版本。
+  - 支持[tracking-by-det/obb/seg/pose](./examples/multiple_object_tracking/README.md)任务。
+  - 支持[Segment-Anything-2](https://github.com/facebookresearch/segment-anything-2)模型。
+  - 支持[Grounding-SAM2](./docs/zh_cn/model_zoo.md)模型。
+  - 支持[日文字符识别](./anylabeling/configs/auto_labeling/japan_ppocr.yaml)模型。
 - 2024年7月:
   - 新增 PPOCR 识别和关键信息提取标签导入/导出功能。
   - 新增 ODVG 标签导入/导出功能，以支持 Grounding 模型训练。
@@ -167,12 +178,14 @@
 
 </div>
 
+
 ## 文档
 
 1. [安装文档](./docs/zh_cn/get_started.md)
 2. [用户手册](./docs/zh_cn/user_guide.md)
 3. [自定义模型](./docs/zh_cn/custom_model.md)
 4. [常见问题答疑](./docs/zh_cn/faq.md)
+
 
 ## 示例
 
@@ -200,6 +213,9 @@
   - [Tracking by OBB Object Detection](./examples/multiple_object_tracking/README.md)
   - [Tracking by Instance Segmentation](./examples/multiple_object_tracking/README.md)
   - [Tracking by Pose Estimation](./examples/multiple_object_tracking/README.md)
+- [iVOS](./examples/interactive_video_object_segmentation/README.md)
+- [Matting](./examples/matting/)
+  - [Image Matting](./examples/matting/image_matting/README.md)
 
 
 ## 联系
@@ -207,6 +223,17 @@
 如果你觉得这个项目有帮助，请点亮右上角的⭐星标⭐。如有任何问题或疑问，欢迎[创建 issue](https://github.com/CVHub520/X-AnyLabeling/issues) 或发送邮件至 cv_hub@163.com。
 
 💡洽谈合作事项或想法共创，敬请添加微信: `ww10874` （非诚勿扰）
+
+
+## 赞助
+
+| **微信支付** | **支付宝** |
+| :---: | :---: |
+| <img src="https://github.com/user-attachments/assets/0178cf76-3627-426e-8432-ec031c9278ae" width="200px" /> | <img src="https://github.com/user-attachments/assets/87544ff8-3560-4696-b035-1fd26ecd162b" width="200px" /> |
+
+
+感谢您的支持！
+
 
 ## 许可
 

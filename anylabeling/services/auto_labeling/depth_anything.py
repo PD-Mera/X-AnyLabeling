@@ -1,11 +1,11 @@
-import logging
 import os
-
 import cv2
 import numpy as np
+
 from PyQt5.QtCore import QCoreApplication
 
 from anylabeling.app_info import __preferred_device__
+from anylabeling.views.labeling.logger import logger
 from anylabeling.views.labeling.utils.opencv import qt_img_to_rgb_cv_img
 from .model import Model
 from .types import AutoLabelingResult
@@ -313,8 +313,8 @@ class DepthAnything(Model):
         try:
             image = qt_img_to_rgb_cv_img(image, image_path)
         except Exception as e:  # noqa
-            logging.warning("Could not inference model")
-            logging.warning(e)
+            logger.warning("Could not inference model")
+            logger.warning(e)
             return []
 
         blob, orig_shape = self.preprocess(image)
@@ -322,7 +322,7 @@ class DepthAnything(Model):
         depth = self.postprocess(output, orig_shape)
 
         image_dir_path = os.path.dirname(image_path)
-        save_path = os.path.join(image_dir_path, "..", "depth")
+        save_path = os.path.join(image_dir_path, "..", "x-anylabeling-depth")
         save_path = os.path.realpath(save_path)
         os.makedirs(save_path, exist_ok=True)
         image_file_name = os.path.basename(image_path)

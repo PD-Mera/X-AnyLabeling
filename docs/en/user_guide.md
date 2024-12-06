@@ -41,6 +41,7 @@
       * [7.3 Loading Predefined Labels](#73-loading-predefined-labels)
       * [7.4 Auto-Switch to Edit Mode](#74-auto-switch-to-edit-mode)
       * [7.5 Hover Auto-Highlight Mode](#75-hover-auto-highlight-mode)
+      * [7.6 Shape Property Customization](#76-shape-property-customization)
   * [8. Tasks](#8-tasks)
       * [8.1 Image Classification](#81-image-classification)
       * [8.2 Object Detection](#82-object-detection)
@@ -49,6 +50,9 @@
       * [8.5 Multi-Object Tracking](#85-multi-object-tracking)
       * [8.6 Depth Estimation](#86-depth-estimation)
       * [8.7 Optical Character Recognition](#87-optical-character-recognition)
+      * [8.8 Interactive Video Object Segmentation](#88-interactive-video-object-segmentation)
+      * [8.9 Matting](#89-matting)
+      * [8.10 Multimodal](#810-multimodal)
    * [9. Models](#9-models)
 
 
@@ -70,18 +74,23 @@ X-AnyLabeling currently supports three data import formats:
 
 X-AnyLabeling provides data deletion functionalities as follows:
 
-- **Delete Label File** (Ctrl+D): Deletes the current annotation file. This operation cannot be undone, so please proceed with caution.
-- **Delete Image File** (Ctrl+Shift+D): Deletes the current image file, moving it to the `_delete_` folder within the current image directory.
+- **Delete Label File** (Ctrl+Delete): Deletes the current annotation file. This operation cannot be undone, so please proceed with caution.
+- **Delete Image File** (Ctrl+Shift+Delete): Deletes the current image file, moving it to the `_delete_` folder within the current image directory.
 
 ### 1.3 Image Switching
 
-X-AnyLabeling offers image switching features as follows:
+In X-AnyLabeling, in addition to regular image switching operations, the following methods are also supported:
 
-- **Previous Image** (A): Switches to the previous image.
-- **Next Image** (D): Switches to the next image.
-- **Previous Image with Label File** (Ctrl+Shift+A): Switches to the previous image with a label file.
-- **Next Image with Label File** (Ctrl+Shift+D): Switches to the next image with a label file.
-- **Jump to Specified Image**: Enter the image name in the file search bar at the bottom right of the interface and press Enter to jump to the specified image.
+| Shortcut | switch_to_checked | Description |
+|----------|-------------------|-------------|
+| Ctrl+Shift+A | true | Jump to the previous annotated image |
+| Ctrl+Shift+D | true | Jump to the next annotated image |
+| Ctrl+Shift+A | false | Jump to the previous unannotated image |
+| Ctrl+Shift+D | false | Jump to the next unannotated image |
+
+You can determine the switching mode by modifying the `switch_to_checked` field in the user configuration file.
+
+Additionally, you can jump to a specific image by entering the image name in the file search bar at the bottom right of the interface and pressing Enter.
 
 ### 1.4 Saving Label Data
 
@@ -305,9 +314,9 @@ The export path defaults to the `Annotations` folder in the same directory as th
 
 ### 4.3 COCO Annotation
 
-The latest version of X-AnyLabeling supports one-click import/export for COCO label files (*.json) related to object detection and instance segmentation tasks.
+The latest version of X-AnyLabeling supports one-click import/export for COCO label files (*.json) related to object detection, instance segmentation, and keypoint detection tasks.
 
-Before importing/exporting COCO label files, prepare a label configuration file, referring to [classes.txt](../../assets/classes.txt), where each line represents a class, with numbers incrementing from 0.
+Before importing or exporting COCO label files, ensure you have a label configuration file prepared. For object detection and instance segmentation tasks, refer to [classes.txt](../../assets/classes.txt), and for keypoint detection tasks, refer to [yolov8_pose.yaml](../../assets/yolov8_pose.yaml).
 
 **Import Task**:
 1. Click the `Upload` button in the top menu bar.
@@ -317,8 +326,9 @@ Before importing/exporting COCO label files, prepare a label configuration file,
 
 **Export Task**:
 1. Click the `Export` button in the top menu bar.
-2. Upload the prepared configuration file.
-3. Click OK.
+2. Select the corresponding task.
+3. Upload the prepared configuration file.
+4. Click OK.
 
 The export path defaults to the `annotations` folder in the same directory as the current image directory.
 
@@ -418,6 +428,21 @@ Frame number, Track ID, Top-left x-coordinate, Top-left y-coordinate, Width, Hei
 ```
 
 The **validity flag** indicates whether the current trajectory is valid, with `0` for invalid data (ignore) and `1` for valid data (activate). Users can set this using the `useDifficult` flag in the label manager, where ☑️ indicates an invalid trajectory.
+
+---
+
+Additionally, for the [MOTS](https://motchallenge.net/data/MOTS/) dataset format, the v2.4.0+ version offers corresponding export settings. The specific steps for implementation are as follows:
+1. Click on the `Export` - `Export MOTS Annotations` button in the top menu bar.
+2. Upload the prepared configuration file.
+3. Select the save path and click 'OK' to proceed.
+
+It is important to note that the default exported mots labels are not in the final official dataset format. Here, we provide the corresponding conversion code for reference:
+```bash
+python3 tools/label_converter.py --task mots --mode custom_to_gt --src_path /path/to/your/custom_gt.txt
+```
+
+> [!NOTE]
+> Before executing the conversion, you need to install the `pycocotools` library first.
 
 ### 4.7 PPOCR Annotation
 
@@ -540,55 +565,58 @@ In this configuration file, you can adjust various user-customized settings, suc
 
 The current default keyboard shortcuts in X-AnyLabeling are as follows. Users can modify them according to their needs to avoid conflicts:
 
-| Shortcut           | Function                                      |
-|--------------------|-----------------------------------------------|
-| d                  | Open the next file                            |
-| a                  | Open the previous file                        |
-| Ctrl + Shift + d   | Open the next labeled file                    |
-| Ctrl + Shift + a   | Open the previous labeled file                |
-| p or Ctrl + n      | Create a polygon                              |
-| o                  | Create a rotated box                          |
-| r or Ctrl + r      | Create a rectangular box                      |
-| i                  | Run the model                                 |
-| q                  | Positive sample point in `SAM Mode`           |
-| e                  | Negative sample point in `SAM Mode`           |
-| b                  | Clear hint points quickly in `SAM Mode`       |
-| f                  | Confirm completion in `SAM Mode`              |
-| g                  | Group selected objects                        |
-| u                  | Ungroup selected objects                      |
-| s                  | Hide selected objects                         |
-| w                  | Show selected objects                         |
-| Ctrl + q           | Exit the current application                  |
-| Ctrl + i           | Open image file                               |
-| Ctrl + o           | Open video file                               |
-| Ctrl + u           | Load all images from a directory              |
-| Ctrl + e           | Edit labels                                   |
-| Ctrl + j           | Edit polygons                                 |
-| Ctrl + c           | Copy selected objects                         |
-| Ctrl + v           | Paste selected objects                        |
-| Ctrl + d           | Copy polygons                                 |
-| Ctrl + g           | Show annotation statistics for the current task |
-| Ctrl + h           | Show all objects in the current image         |
-| Ctrl + p           | Toggle preserve previous mode                 |
-| Ctrl + y           | Toggle auto-use last label                    |
-| Ctrl + m           | Activate batch annotation                     |
-| Ctrl + a           | Enable auto annotation                        |
-| Ctrl + s           | Save current annotations                      |
-| Ctrl + l           | Show/Hide labels                              |
-| Ctrl + t           | Show/Hide text                                |
-| Ctrl + Shift + s   | Change output directory                       |
-| Ctrl -             | Zoom out                                      |
-| Ctrl + 0           | Zoom to original size                         |
-| Ctrl + + or Ctrl +=| Zoom in                                       |
-| Ctrl + f           | Fit to window                                 |
-| Ctrl + Shift + f   | Fit to width                                  |
-| Ctrl + z           | Undo last action                              |
-| Ctrl + Delete      | Delete file                                   |
-| Delete             | Delete polygon                                |
-| Esc                | Deselect object                               |
-| Backspace          | Delete selected point                         |
-| ↑→↓←               | Move selected object using keyboard arrows    |
-| zxcv               | Rotate selected rectangular box using the keyboard |
+| Shortcut              | Function                                      |
+|-----------------------|-----------------------------------------------|
+| d                     | Open the next file                            |
+| a                     | Open the previous file                        |
+| Ctrl + Shift + d      | Open the next checked/unchecked file          |
+| Ctrl + Shift + a      | Open the previous checked/unchecked file      |
+| p or Ctrl + n         | Create a polygon                              |
+| o                     | Create a rotated box                          |
+| r or Ctrl + r         | Create a rectangular box                      |
+| i                     | Run the model                                 |
+| q                     | Positive sample point in `SAM Mode`           |
+| e                     | Negative sample point in `SAM Mode`           |
+| b                     | Clear hint points quickly in `SAM Mode`       |
+| f                     | Confirm completion in `SAM Mode`              |
+| g                     | Group selected objects                        |
+| u                     | Ungroup selected objects                      |
+| s                     | Hide selected objects                         |
+| w                     | Show selected objects                         |
+| Alt + g               | Edit group id                                 |
+| Ctrl + Delete         | Delete label file                             |
+| Ctrl + Shift + Delete | Delete image file                             |
+| Ctrl + q              | Exit the current application                  |
+| Ctrl + i              | Open image file                               |
+| Ctrl + o              | Open video file                               |
+| Ctrl + u              | Load all images from a directory              |
+| Ctrl + e              | Edit labels                                   |
+| Ctrl + j              | Edit polygons                                 |
+| Ctrl + c              | Copy selected objects                         |
+| Ctrl + v              | Paste selected objects                        |
+| Ctrl + d              | Copy polygons                                 |
+| Ctrl + g              | Show annotation statistics for current task   |
+| Ctrl + h              | Show all objects in current image             |
+| Ctrl + p              | Toggle preserve previous mode                 |
+| Ctrl + y              | Toggle auto-use last label                    |
+| Ctrl + m              | Activate batch annotation                     |
+| Ctrl + a              | Enable auto annotation                        |
+| Ctrl + s              | Save current annotations                      |
+| Ctrl + l              | Show/Hide labels                              |
+| Ctrl + t              | Show/Hide text                                |
+| Ctrl + Shift + s      | Change output directory                       |
+| Ctrl + 0              | Zoom to original size                         |
+| Ctrl + + or Ctrl +=   | Zoom in                                       |
+| Ctrl + f              | Fit to window                                 |
+| Ctrl + Shift + f      | Fit to width                                  |
+| Ctrl + Shift + m      | Merge selected rectangle shapes               |
+| Ctrl + Shift + n      | Loop through shapes                           |
+| Ctrl + z              | Undo last action                              |
+| Delete                | Delete selected shape                         |
+| Esc                   | Deselect object                               |
+| Backspace             | Delete selected point                         |
+| ↑→↓←                  | Move selected object using keyboard arrows    |
+| zxcv                  | Rotate selected rotation using the keyboard   |
 
 ### 7.2 Customizing Label Colors
 
@@ -652,40 +680,72 @@ In X-AnyLabeling v2.4.0 and above, the **hover auto-highlight mode** feature is 
 
 Note: In `multi-label classification tasks`, if the user manually uploads a property file, the `auto_highlight_shape` field will be set to `false` to prevent accidental switching of the property window status bar, thus improving user experience.
 
+### 7.6 Shape Property Customization
 
-### 8. Tasks
+a. Open the configuration file `.xanylabelingrc` in your user directory.
 
-#### 8.1 Image Classification
+b. Find the `shape` field in the configuration file, and modify the corresponding field values as needed.
+
+```YAML
+...
+shape:
+  # drawing
+  line_color: [0, 255, 0, 128]
+  fill_color: [220, 220, 220, 150]
+  vertex_fill_color: [0, 255, 0, 255]
+  # selecting / hovering
+  select_line_color: [255, 255, 255, 255]
+  select_fill_color: [0, 255, 0, 155]
+  hvertex_fill_color: [255, 255, 255, 255]
+  point_size: 10
+  line_width: 4
+...
+```
+
+## 8. Tasks
+
+### 8.1 Image Classification
 
 - Image-level classification: [Link](../../examples/classification/image-level/README.md)
 - Object-level classification: [Link](../../examples/classification/shape-level/README.md)
 
-#### 8.2 Object Detection
+### 8.2 Object Detection
 
 - Horizontal Bounding Box Detection: [Link](../../examples/detection/hbb/README.md)
 - Oriented Bounding Box Detection: [Link](../../examples/detection/obb/README.md)
 
-#### 8.3 Image Segmentation
+### 8.3 Image Segmentation
 
 - Semantic & Instance Segmentation: [Link](../../examples/segmentation/README.md)
 
-#### 8.4 Pose Estimation
+### 8.4 Pose Estimation
 
-- Keypoint Detection: [Link](../../examples/pose_estimation/README.md)
+- Keypoint Detection: [Link](../../examples/estimation/pose_estimation/README.md)
 
-#### 8.5 Multi-Object Tracking
+### 8.5 Multi-Object Tracking
 
 - Multi-Object Tracking: [Link](../../examples/multiple_object_tracking/README.md)
 
-#### 8.6 Depth Estimation
+### 8.6 Depth Estimation
 
-- Depth Estimation: [Link](../../examples/depth_estimation/README.md)
+- Depth Estimation: [Link](../../examples/estimation/depth_estimation/README.md)
 
 #### 8.7 Optical Character Recognition
 
 - Text Detection and Recognition: [Link](../../examples/optical_character_recognition/text_recognition/README.md)
 - Key Information Extraction: [Link](../../examples/optical_character_recognition/kie/README.md)
 
+### 8.8 Interactive Video Object Segmentation
+
+- Interactive Video Object Segmentation: [Link](../../examples/interactive_video_object_segmentation/README.md)
+
+### 8.9 Matting
+
+- Image Matting: [Link](../../examples/matting/image_matting/README.md)
+
+### 8.10 Multimodal
+
+- Multimodal: [Link](../../examples/multimodal)
 
 ## 9. Models
 

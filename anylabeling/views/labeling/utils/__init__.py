@@ -1,6 +1,7 @@
 # flake8: noqa
 
 from .general import (
+    gradient_text,
     hex_to_rgb,
     is_chinese,
 )
@@ -15,6 +16,7 @@ from .image import (
     img_data_to_pil,
     img_data_to_png_data,
     img_pil_to_data,
+    process_image_exif,
 )
 from .qt import (
     Struct,

@@ -361,7 +361,7 @@ def agg_prediction(result: PredictionResult, thresh):
     return res
 
 
-def predict(
+def predict(  # noqa: C901
     detection_model: DetectionModel = None,
     model_type: str = "mmdet",
     model_path: str = None,

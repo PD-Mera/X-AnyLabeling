@@ -15,6 +15,12 @@
 可参考[#500](https://github.com/CVHub520/X-AnyLabeling/issues/500)。
 </details>
 
+<details>
+<summary>Q: QStandardPaths: wrong permissions on runtime directory /run/user/1000/, 0755 instead of 0700</summary>
+
+添加 `chmod 0700 /run/user/1000/` 到 `.bashrc` 文件中激活并重新启动应用即可。
+</details>
+
 
 ### 界面交互相关问题
 
@@ -26,6 +32,12 @@
 
 
 ### 模型相关问题
+
+<details>
+<summary>Q: 下载完的模型每次重新启动应用时都被自动删除重新下载</summary>
+
+注意模型路径不得有中文字符，否则会有异常。（[#600](https://github.com/CVHub520/X-AnyLabeling/issues/600)）
+</details>
 
 <details>
 <summary>Q: AI模型推理时如何识别特定的类别？</summary>
@@ -76,6 +88,30 @@ Error in predict_shapes: [ONNXRuntimeError] : 1 : FAIL : Non-zero status code re
 查看配置文件是否有定义纯数字标签。请注意在定义以**纯数字**命名的标签名称时，请务必将其加上单引号 `''`
 </details>
 
+<details>
+<summary>Q: Unsupported model IR version: 10, max supported IR version: 9</summary>
+
+ONNX Runtime 版本过低，请更新：
+
+```shell
+# 安装 CPU 版本
+pip install --upgrade onnxruntime
+
+# 安装 GPU 版本
+pip install --upgrade onnxruntime-gpu
+```
+</details>
+
+<details>
+<summary>Q: Your model ir_version is higher than the checker's.</summary>
+onnx 版本过低，请更新：
+
+```shell
+pip install --upgrade onnx
+```
+</details>
+
+
 ### 标签导入导出相关问题
 
 <details>
@@ -94,4 +130,10 @@ Error in predict_shapes: [ONNXRuntimeError] : 1 : FAIL : Non-zero status code re
 <summary>Q: 导出关键点标签时报错：int0 argument must be a string, a byteslike object or a number, not 'NoneType'</summary>
 
 `group_id`字段缺失，请确保每个矩形框和关键点都有对应的群组编号。
+</details>
+
+<details>
+<summary>Q: 'NoneType' object has no attribute 'shape'</summary>
+
+检查文件路径是否包含**中文字符**。
 </details>

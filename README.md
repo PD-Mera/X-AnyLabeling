@@ -33,18 +33,29 @@
 
 ## 🥳 What's New
 
-- Aug. 2024:
-  - 🤗 Pre-release the latest version [2.4.0](https://github.com/CVHub520/X-AnyLabeling/releases/tag/v2.4.0) 🤗
-  - 🔥🔥🔥 Support [tracking-by-det/obb/seg/pose](./examples/multiple_object_tracking/README.md) tasks.
-  - ✨✨✨ Support [Segment-Anything-2](https://github.com/facebookresearch/segment-anything-2) model! (Recommended)
-  - 👏👏👏 Support [Grounding-SAM2](./docs/en/model_zoo.md) model.
-  - Support lightweight model for Japanese recognition.
+- Nov. 2024:
+  - 🤗🤗🤗 Added support for [Florence-2](./examples/multimodal/florence2/README.md), a unified vision foundation model for multi-modal tasks.
+  - 🎯🎯🎯 Added support for the [UPN](./examples/detection/hbb/README.md) model to generate proposal boxes.
+  - 🌟🌟🌟 Added support for [YOLOv5-SAHI](./anylabeling/configs/auto_labeling/yolov5s_sahi.yaml).
+- Oct. 2024:
+  - ✨✨✨ Added support for [DocLayout-YOLO](examples/optical_character_recognition/document_layout_analysis/README.md) model.
+- Sep. 2024:
+  - Release version [2.4.4](https://github.com/CVHub520/X-AnyLabeling/releases/tag/v2.4.4)
+  - 🚀🚀🚀 Added support for [YOLO11-Det/OBB/Pose/Seg/Track model](https://github.com/ultralytics/ultralytics).
+  - 🧸🧸🧸 Added support for image matting based on [RMBG v1.4 model](https://huggingface.co/briaai/RMBG-1.4).
+  - 🔥🔥🔥 Added support for interactive video object tracking based on [Segment-Anything-2](https://github.com/CVHub520/segment-anything-2). [[Tutorial](examples/interactive_video_object_segmentation/README.md)]
 
 <br>
 
 <details> 
 <summary>Click to view more news.</summary>
 
+- Aug. 2024:
+  - Release version [2.4.1](https://github.com/CVHub520/X-AnyLabeling/releases/tag/v2.4.1)
+  - Support [tracking-by-det/obb/seg/pose](./examples/multiple_object_tracking/README.md) tasks.
+  - Support [Segment-Anything-2](https://github.com/facebookresearch/segment-anything-2) model! (Recommended)
+  - Support [Grounding-SAM2](./docs/en/model_zoo.md) model.
+  - Support lightweight model for Japanese recognition.
 - Jul. 2024:
   - Add PPOCR-Recognition and KIE import/export functionality for training PP-OCR task.
   - Add ODVG import/export functionality for training grounding task.
@@ -131,6 +142,7 @@
   - Release [YOLOv5](https://github.com/ultralytics/yolov5), [YOLOv6](https://github.com/meituan/YOLOv6), [YOLOv7](https://github.com/WongKinYiu/yolov7), [YOLOv8](https://github.com/ultralytics/ultralytics), [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX).
 </details>
 
+
 ## X-AnyLabeling
 
 **X-AnyLabeling** is a powerful annotation tool that integrates an AI engine for fast and automatic labeling. It’s designed for visual data engineers, offering industrial-grade solutions for complex tasks.
@@ -146,6 +158,7 @@
 - Enable import/export for formats like COCO, VOC, YOLO, DOTA, MOT, MASK, PPOCR.
 - Handles tasks like `classification`, `detection`, `segmentation`, `caption`, `rotation`, `tracking`, `estimation`, `ocr` and so on.
 - Supports diverse annotation styles: `polygons`, `rectangles`, `rotated boxes`, `circles`, `lines`, `points`, and annotations for `text detection`, `recognition`, and `KIE`.
+
 
 ### Model library
 
@@ -164,6 +177,7 @@
 For more details, please refer to 👉 [model_zoo](./docs/en/model_zoo.md) 👈
 
 </div>
+
 
 ## Docs
 
@@ -197,18 +211,25 @@ For more details, please refer to 👉 [model_zoo](./docs/en/model_zoo.md) 👈
   - [Tracking by OBB Object Detection](./examples/multiple_object_tracking/README.md)
   - [Tracking by Instance Segmentation](./examples/multiple_object_tracking/README.md)
   - [Tracking by Pose Estimation](./examples/multiple_object_tracking/README.md)
+- [iVOS](./examples/interactive_video_object_segmentation/README.md)
+- [Matting](./examples/matting/)
+  - [Image Matting](./examples/matting/image_matting/README.md)
+
 
 ## Contact
 
 If you find this project helpful, please give it a ⭐star⭐, and for any questions or issues, feel free to [create an issue](https://github.com/CVHub520/X-AnyLabeling/issues) or email cv_hub@163.com.
 
+
 ## License
 
 This project is released under the [GPL-3.0 license](./LICENSE).
 
+
 ## Acknowledgement
 
 I extend my heartfelt thanks to the developers and contributors of [AnyLabeling](https://github.com/vietanhdev/anylabeling), [LabelMe](https://github.com/wkentaro/labelme), [LabelImg](https://github.com/tzutalin/labelIm), [roLabelImg](https://github.com/cgvict/roLabelImg), [PPOCRLabel](https://github.com/PFCCLab/PPOCRLabel) and [CVAT](https://github.com/opencv/cvat), whose work has been crucial to the success of this project.
+
 
 ## Citing
 

@@ -16,6 +16,7 @@ class AutoLabelingWidget(QWidget):
     auto_labeling_mode_changed = pyqtSignal(AutoLabelingMode)
     clear_auto_labeling_action_requested = pyqtSignal()
     finish_auto_labeling_object_action_requested = pyqtSignal()
+    cache_auto_label_changed = pyqtSignal()
 
     def __init__(self, parent):
         super().__init__()
@@ -53,6 +54,12 @@ class AutoLabelingWidget(QWidget):
                 self.output_select_combobox.currentData()
             )
         )
+        self.upn_select_combobox.currentIndexChanged.connect(
+            self.on_upn_mode_changed
+        )
+        self.florence2_select_combobox.currentIndexChanged.connect(
+            self.on_florence2_mode_changed
+        )
 
         self.update_model_configs(self.model_manager.get_model_configs())
 
@@ -65,6 +72,8 @@ class AutoLabelingWidget(QWidget):
             self.button_add_rect.setEnabled(enable)
             self.button_clear.setEnabled(enable)
             self.button_finish_object.setEnabled(enable)
+            self.upn_select_combobox.setEnabled(enable)
+            self.florence2_select_combobox.setEnabled(enable)
 
         self.model_manager.prediction_started.connect(
             lambda: set_enable_tools(False)
@@ -72,6 +81,11 @@ class AutoLabelingWidget(QWidget):
         self.model_manager.prediction_finished.connect(
             lambda: set_enable_tools(True)
         )
+
+        # Init value
+        self.initial_conf_value = 0
+        self.initial_iou_value = 0
+        self.initial_preserve_annotations_state = False
 
         # Auto labeling buttons
         self.button_run.setShortcut("I")
@@ -101,8 +115,12 @@ class AutoLabelingWidget(QWidget):
             self.clear_auto_labeling_action_requested
         )
         self.button_clear.setShortcut("B")
+        self.button_finish_object.clicked.connect(self.add_new_prompt)
         self.button_finish_object.clicked.connect(
             self.finish_auto_labeling_object_action_requested
+        )
+        self.button_finish_object.clicked.connect(
+            self.cache_auto_label_changed
         )
         self.button_finish_object.setShortcut("F")
         self.toggle_preserve_existing_annotations.stateChanged.connect(
@@ -122,6 +140,47 @@ class AutoLabelingWidget(QWidget):
         self.auto_labeling_mode_changed.connect(self.update_button_colors)
         self.auto_labeling_mode = AutoLabelingMode.NONE
         self.auto_labeling_mode_changed.emit(self.auto_labeling_mode)
+
+        # Populate UPN select combobox with modes
+        self.populate_upn_combobox()
+        # Populate Florence2 select combobox with modes
+        self.populate_florence2_combobox()
+
+    def populate_upn_combobox(self):
+        """Populate UPN combobox with available modes"""
+        self.upn_select_combobox.clear()
+        # Define modes with display names
+        modes = {
+            "coarse_grained_prompt": self.tr("Coarse Grained"),
+            "fine_grained_prompt": self.tr("Fine Grained"),
+        }
+        # Add modes to combobox
+        for mode, display_name in modes.items():
+            self.upn_select_combobox.addItem(display_name, userData=mode)
+
+    def populate_florence2_combobox(self):
+        """Populate Florence2 combobox with available modes"""
+        self.florence2_select_combobox.clear()
+        # Define modes with display names
+        modes = {
+            "caption": self.tr("Caption"),
+            "detailed_cap": self.tr("Detailed Caption"),
+            "more_detailed_cap": self.tr("More Detailed Caption"),
+            "od": self.tr("Object Detection"),
+            "region_proposal": self.tr("Region Proposal"),
+            "dense_region_cap": self.tr("Dense Region Caption"),
+            "refer_exp_seg": self.tr("Refer-Exp Segmentation"),
+            "region_to_seg": self.tr("Region to Segmentation"),
+            "ovd": self.tr("OVD"),
+            "cap_to_pg": self.tr("Caption to Parse Grounding"),
+            "region_to_cat": self.tr("Region to Category"),
+            "region_to_desc": self.tr("Region to Description"),
+            "ocr": self.tr("OCR"),
+            "ocr_with_region": self.tr("OCR with Region"),
+        }
+        # Add modes to combobox
+        for mode, display_name in modes.items():
+            self.florence2_select_combobox.addItem(display_name, userData=mode)
 
     def update_model_configs(self, model_list):
         """Update model list"""
@@ -200,7 +259,9 @@ class AutoLabelingWidget(QWidget):
         """Run visual-language prediction"""
         if self.parent.filename is not None and self.edit_text:
             self.model_manager.predict_shapes_threading(
-                self.parent.image, self.parent.filename, self.edit_text.text()
+                self.parent.image,
+                self.parent.filename,
+                text_prompt=self.edit_text.text(),
             )
 
     def unload_and_hide(self):
@@ -225,6 +286,36 @@ class AutoLabelingWidget(QWidget):
             self.on_model_select_combobox_changed
         )
         self.model_select_combobox.setEnabled(True)
+
+        # Reset controls to initial values when the model changes
+        self.on_conf_value_changed(self.initial_conf_value)
+        self.on_iou_value_changed(self.initial_iou_value)
+        self.on_preserve_existing_annotations_state_changed(
+            self.initial_preserve_annotations_state
+        )
+        self.on_reset_tracker()
+
+        # Update UPN mode in UI if UPN model is loaded
+        if model_config.get("type") == "upn":
+            self.update_upn_mode_ui()
+        # Update Florence2 mode in UI if Florence2 model is loaded
+        elif model_config.get("type") == "florence2":
+            self.update_florence2_mode_ui()
+
+    def update_upn_mode_ui(self):
+        """Update UPN mode combobox to reflect current backend state"""
+        current_mode = self.model_manager.loaded_model_config["model"].prompt_type
+        index = self.upn_select_combobox.findData(current_mode)
+        if index != -1:
+            self.upn_select_combobox.setCurrentIndex(index)
+
+    def update_florence2_mode_ui(self):
+        """Update Florence2 mode combobox to reflect current backend state"""
+        current_mode = self.model_manager.loaded_model_config["model"].prompt_type
+        index = self.florence2_select_combobox.findData(current_mode)
+        if index != -1:
+            self.florence2_select_combobox.setCurrentIndex(index)
+        self.update_florence2_widgets(current_mode)
 
     def on_output_modes_changed(self, output_modes, default_output_mode):
         """Handle output modes changed"""
@@ -306,6 +397,8 @@ class AutoLabelingWidget(QWidget):
             "output_select_combobox",
             "toggle_preserve_existing_annotations",
             "button_reset_tracker",
+            "upn_select_combobox",
+            "florence2_select_combobox",
         ]
         for widget in widgets:
             getattr(self, widget).hide()
@@ -322,15 +415,124 @@ class AutoLabelingWidget(QWidget):
         return True
 
     def on_conf_value_changed(self, value):
+        self.initial_conf_value = value
         self.model_manager.set_auto_labeling_conf(value)
 
     def on_iou_value_changed(self, value):
+        self.initial_iou_value = value
         self.model_manager.set_auto_labeling_iou(value)
 
     def on_preserve_existing_annotations_state_changed(self, state):
+        self.initial_preserve_annotations_state = state
         self.model_manager.set_auto_labeling_preserve_existing_annotations_state(
             state
         )
 
     def on_reset_tracker(self):
         self.model_manager.set_auto_labeling_reset_tracker()
+
+    def on_cache_auto_label_changed(self, text, gid):
+        self.model_manager.set_cache_auto_label(text, gid)
+
+    def add_new_prompt(self):
+        self.model_manager.set_auto_labeling_prompt()
+
+    @pyqtSlot()
+    def on_upn_mode_changed(self):
+        """Handle UPN mode change"""
+        mode = self.upn_select_combobox.currentData()
+        self.model_manager.set_upn_mode(mode)
+
+    @pyqtSlot()
+    def on_florence2_mode_changed(self):
+        """Handle Florence2 mode change"""
+        mode = self.florence2_select_combobox.currentData()
+        self.model_manager.set_florence2_mode(mode)
+        self.update_florence2_widgets(mode)
+
+    def update_florence2_widgets(self, mode):
+        """Update widget visibility based on Florence2 mode"""
+        # Check if Florence2 model is loaded
+        if not self.model_manager.loaded_model_config or \
+        self.model_manager.loaded_model_config.get("type") != "florence2":
+            return
+
+        # Define which widgets are needed for each mode
+        mode_widgets = {
+            # Only need run button
+            "caption": ["button_run"],
+            "detailed_cap": ["button_run"],
+            "more_detailed_cap": ["button_run"],
+            "ocr": ["button_run"],
+            "ocr_with_region": ["button_run"],
+            "od": ["button_run"],
+            "region_proposal": ["button_run"],
+            "dense_region_cap": ["button_run"],
+
+            # Region-based modes need rectangle tools
+            "region_to_cat": ["button_add_rect", "button_clear", "button_finish_object"],
+            "region_to_desc": ["button_add_rect", "button_clear", "button_finish_object"],
+            "region_to_seg": ["button_add_rect", "button_clear", "button_finish_object"],
+
+            # Other modes
+            "refer_exp_seg": ["edit_text", "button_send"],
+            "cap_to_pg": ["edit_text", "button_send"],
+            "ovd": ["edit_text", "button_send"],
+        }
+
+        # Define which modes should preserve existing annotations by default
+        preserve_annotations_modes = {
+            # Modes that should preserve existing annotations (replace=False)
+            "region_to_cat": True,
+            "region_to_desc": True,
+            "region_to_seg": True,
+            "refer_exp_seg": True,
+
+            # Modes that should replace existing annotations (replace=True)
+            "caption": False,
+            "detailed_cap": False,
+            "more_detailed_cap": False,
+            "od": False,
+            "region_proposal": False,
+            "dense_region_cap": False,
+            "ovd": False,
+            "cap_to_pg": False,
+            "ocr": False,
+            "ocr_with_region": False,
+        }
+
+        # Hide all widgets first
+        widgets_to_manage = [
+            "edit_text", 
+            "button_run",
+            "button_send",
+            "button_add_rect", 
+            "button_clear",
+            "button_finish_object",
+        ]
+
+        for widget_name in widgets_to_manage:
+            getattr(self, widget_name).hide()
+
+        if mode in ["ovd", "cap_to_pg", "refer_exp_seg"]:
+            self.edit_text.setPlaceholderText("Enter prompt here...")
+
+        # Show only the widgets needed for current mode
+        if mode in mode_widgets:
+            for widget_name in mode_widgets[mode]:
+                getattr(self, widget_name).show()
+
+            # Show preserve annotations toggle for all modes
+            self.toggle_preserve_existing_annotations.show()
+            # Set the default state for preserve annotations
+            if mode in preserve_annotations_modes:
+                # Temporarily disconnect the signal to avoid triggering the callback
+                self.toggle_preserve_existing_annotations.stateChanged.disconnect()
+                # Set the state
+                self.toggle_preserve_existing_annotations.setChecked(preserve_annotations_modes[mode])
+                # Reconnect the signal
+                self.toggle_preserve_existing_annotations.stateChanged.connect(
+                    self.on_preserve_existing_annotations_state_changed
+                )
+                # Manually trigger the state change to update the model
+                self.on_preserve_existing_annotations_state_changed(preserve_annotations_modes[mode])

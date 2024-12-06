@@ -1,6 +1,4 @@
-import logging
 import os
-
 import cv2
 import numpy as np
 import onnxruntime as ort
@@ -12,6 +10,7 @@ from PyQt5.QtCore import QCoreApplication
 
 from anylabeling.app_info import __preferred_device__
 from anylabeling.views.labeling.shape import Shape
+from anylabeling.views.labeling.logger import logger
 from anylabeling.views.labeling.utils.opencv import qt_img_to_rgb_cv_img
 
 from .types import AutoLabelingResult
@@ -229,7 +228,7 @@ class YOLOv8_EfficientViT_SAM(YOLO):
         if not model_abs_path or not os.path.isfile(model_abs_path):
             raise FileNotFoundError(
                 QCoreApplication.translate(
-                    "Model", f"Could not download or initialize YOLOv8 model."
+                    "Model", "Could not download or initialize YOLOv8 model."
                 )
             )
         self.net = OnnxBaseModel(model_abs_path, __preferred_device__)
@@ -450,8 +449,8 @@ class YOLOv8_EfficientViT_SAM(YOLO):
         try:
             cv_image = qt_img_to_rgb_cv_img(image, filename)
         except Exception as e:  # noqa
-            logging.warning("Could not inference model")
-            logging.warning(e)
+            logger.warning("Could not inference model")
+            logger.warning(e)
             return []
 
         if filename not in self.image_embed_cache:

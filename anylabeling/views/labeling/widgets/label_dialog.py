@@ -1,8 +1,9 @@
+import os
 import re
 import json
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import QFont, QColor, QIntValidator
 from PyQt5.QtCore import QCoreApplication, Qt
 from PyQt5.QtWidgets import (
     QColorDialog,
@@ -17,6 +18,266 @@ from ..logger import logger
 
 # TODO(unknown):
 # - Calculate optimal position so as not to go out of screen area.
+
+
+def natural_sort_key(s):
+    return [
+        int(c) if c.isdigit() else c.lower() for c in re.split(r"(\d+)", s)
+    ]
+
+
+class GroupIDModifyDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        super(GroupIDModifyDialog, self).__init__(parent)
+        self.parent = parent
+        self.shape_list = parent.get_label_file_list()
+        self.gid_info = self.get_gid_info()
+        self.init_ui()
+
+    def get_gid_info(self):
+        gid_info = set()
+        for shape_file in self.shape_list:
+            with open(shape_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            shapes = data.get("shapes", [])
+            for shape in shapes:
+                group_id = shape.get("group_id", None)
+                if group_id is not None:
+                    gid_info.add(group_id)
+        return sorted(list(gid_info))
+
+    def init_ui(self):
+        self.setWindowTitle(self.tr("Group ID Change Manager"))
+        self.setWindowFlags(
+            self.windowFlags() 
+            | Qt.WindowMinimizeButtonHint 
+            | Qt.WindowMaximizeButtonHint
+        )
+
+        self.resize(640, 480)
+        self.move_to_center()
+
+        # Widget layout
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(20)
+
+        # Table settings
+        title_list = ["Ori Group-ID", "New Group-ID"]
+        self.table_widget = QTableWidget(self)
+        self.table_widget.setColumnCount(len(title_list))
+        self.table_widget.setHorizontalHeaderLabels(title_list)
+
+        # Set table to be adaptive
+        self.table_widget.horizontalHeader().setStretchLastSection(True)
+        self.table_widget.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Fixed)
+        self.table_widget.setColumnWidth(0, 240)
+
+        # Table style
+        self.table_widget.setStyleSheet("""
+            QTableWidget {
+                border: none;
+                border-radius: 8px;
+                background-color: #f5f5f7;
+                selection-background-color: #e3f2fd;
+            }
+            QTableWidget::item {
+                padding: 8px;
+                border-bottom: 1px solid #e5e5e5;
+            }
+            QTableWidget::item:selected {
+                background-color: #e3f2fd;
+                color: #000000;
+            }
+            QHeaderView::section {
+                background-color: #f5f5f7;
+                padding: 12px 8px;
+                border: none;
+                font-weight: 600;
+                color: #1d1d1f;
+            }
+            QTableWidget QLineEdit {
+                padding: 6px 8px;
+                margin: 2px 4px;
+                border: 1px solid #d2d2d7;
+                border-radius: 6px;
+                background: white;
+                selection-background-color: #0071e3;
+                min-width: 200px;
+            }
+            QTableWidget QLineEdit:focus {
+                border: 2px solid #0071e3;
+            }
+        """)
+
+        # Buttons layout
+        self.buttons_layout = QtWidgets.QHBoxLayout()
+        self.buttons_layout.setSpacing(12)
+
+        # Cancel button
+        self.cancel_button = QtWidgets.QPushButton(self.tr("Cancel"), self)
+        self.cancel_button.setFixedSize(120, 36)
+        self.cancel_button.clicked.connect(self.reject)
+        self.cancel_button.setStyleSheet("""
+            QPushButton {
+                background-color: #f5f5f7;
+                color: #1d1d1f;
+                border: none;
+                border-radius: 6px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background-color: #e5e5e5;
+            }
+            QPushButton:pressed {
+                background-color: #d5d5d5;
+            }
+        """)
+
+        # Confirm button
+        self.confirm_button = QtWidgets.QPushButton(self.tr("Confirm"), self)
+        self.confirm_button.setFixedSize(120, 36)
+        self.confirm_button.clicked.connect(self.confirm_changes)
+        self.confirm_button.setStyleSheet("""
+            QPushButton {
+                background-color: rgb(255, 148, 1);
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background-color: rgb(255, 158, 11);
+            }
+            QPushButton:pressed {
+                background-color: rgb(235, 128, 1);
+            }
+        """)
+
+        self.buttons_layout.addStretch()
+        self.buttons_layout.addWidget(self.cancel_button)
+        self.buttons_layout.addWidget(self.confirm_button)
+
+        layout.addWidget(self.table_widget)
+        layout.addLayout(self.buttons_layout)
+
+        self.populate_table()
+
+    def move_to_center(self):
+        qr = self.frameGeometry()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
+
+    def populate_table(self):
+        for i, group_id in enumerate(self.gid_info):
+            self.table_widget.insertRow(i)
+
+            # Ori Group-ID
+            old_gid_item = QTableWidgetItem(str(group_id))
+            old_gid_item.setTextAlignment(Qt.AlignCenter)
+            old_gid_item.setFlags(old_gid_item.flags() ^ QtCore.Qt.ItemIsEditable)
+
+            # New Group-ID
+            line_edit = QtWidgets.QLineEdit(self.table_widget)
+            line_edit.setValidator(QIntValidator(0, 9999, self))
+            line_edit.setPlaceholderText("Enter new ID")
+            line_edit.setAlignment(Qt.AlignCenter)
+            line_edit.setFixedHeight(28)
+
+            # Create a widget to hold the line edit and center it vertically
+            container = QtWidgets.QWidget()
+            layout = QtWidgets.QHBoxLayout(container)
+            layout.setContentsMargins(4, 4, 4, 4)
+            layout.setAlignment(Qt.AlignCenter)
+            layout.addWidget(line_edit)
+
+            line_edit.setStyleSheet("""
+                QLineEdit {
+                    padding: 2px 8px;
+                    margin: 2px 4px;
+                    border: 1px solid #d2d2d7;
+                    border-radius: 6px;
+                    background: white;
+                    font-size: 14px;
+                    min-width: 200px;
+                }
+                QLineEdit:focus {
+                    border: 2px solid #0071e3;
+                }
+            """)
+
+            self.table_widget.setItem(i, 0, old_gid_item)
+            self.table_widget.setCellWidget(i, 1, container)
+
+            # Set row height
+            self.table_widget.setRowHeight(i, 50)
+
+    def confirm_changes(self):
+        total_num = self.table_widget.rowCount()
+        if total_num == 0:
+            self.reject()
+            return
+
+        # Temporary dictionary to handle changes
+        new_gid_info = []
+        updated_gid_info = {}
+
+        # Iterate over each row to get the old and new group IDs
+        for i in range(total_num):
+            old_gid_item = self.table_widget.item(i, 0)
+            container = self.table_widget.cellWidget(i, 1)
+            line_edit = container.layout().itemAt(0).widget()
+            new_gid = line_edit.text()
+            old_gid = old_gid_item.text()
+
+            # Only add to updated_gid_info
+            # if the new group ID is not empty and different
+            if new_gid and old_gid != new_gid:
+                new_gid_info.append(new_gid)
+                updated_gid_info[int(old_gid)] = {"new_gid": int(new_gid)}
+            else:
+                new_gid_info.append(old_gid)
+        # Update original gid info
+        self.gid_info = new_gid_info
+
+        # Try to modify group IDs
+        if self.modify_group_id(updated_gid_info):
+            QtWidgets.QMessageBox.information(
+                self,
+                "Success",
+                "Group IDs modified successfully!",
+            )
+            self.accept()
+        else:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Warning",
+                "An error occurred while updating the Group IDs.",
+            )
+
+    def modify_group_id(self, updated_gid_info):
+        try:
+            for shape_file in self.shape_list:
+                with open(shape_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                src_shapes, dst_shapes = data["shapes"], []
+                for shape in src_shapes:
+                    group_id = shape.get("group_id")
+                    if group_id is not None:
+                        group_id = int(group_id)
+                        if group_id in updated_gid_info:
+                            shape["group_id"] = updated_gid_info[group_id][
+                                "new_gid"
+                            ]
+                    dst_shapes.append(shape)
+                data["shapes"] = dst_shapes
+                with open(shape_file, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+            return True
+        except Exception as e:
+            logger.error(f"Error occurred while updating Group IDs: {e}")
+            return False
 
 
 class LabelColorButton(QtWidgets.QWidget):
@@ -49,15 +310,33 @@ class LabelColorButton(QtWidgets.QWidget):
 
 
 class LabelModifyDialog(QtWidgets.QDialog):
+    """A dialog for modifying labels across multiple files.
+
+    This dialog allows users to:
+    - Change label names
+    - Delete labels
+    - Modify label colors
+    - Select file range for applying changes
+    """
+
     def __init__(self, parent=None, opacity=128):
+        """Initialize the dialog.
+
+        Args:
+            parent: Parent widget. Defaults to None.
+            opacity: Opacity value for colors. Defaults to 128.
+        """
         super(LabelModifyDialog, self).__init__(parent)
         self.parent = parent
         self.opacity = opacity
-        self.label_file_list = parent.get_label_file_list()
+        self.image_file_list = self.get_image_file_list()
+        self.start_index = 1
+        self.end_index = len(self.image_file_list)
         self.init_label_info()
         self.init_ui()
 
     def init_ui(self):
+        """Initialize the user interface."""
         self.setWindowTitle(self.tr("Label Change Manager"))
         self.setWindowFlags(
             self.windowFlags()
@@ -81,22 +360,49 @@ class LabelModifyDialog(QtWidgets.QDialog):
                 QtCore.Qt.AlignCenter
             )
 
-        self.buttons_layout = QtWidgets.QHBoxLayout()
+        # Add input fields for range selection
+        range_layout = QtWidgets.QHBoxLayout()
+        # Add stretch to center the widgets
+        range_layout.addStretch(1)
 
-        self.cancel_button = QtWidgets.QPushButton(self.tr("Cancel"), self)
-        self.cancel_button.clicked.connect(self.reject)
+        from_label = QtWidgets.QLabel("From:")
+        self.from_input = QtWidgets.QSpinBox()
+        self.from_input.setMinimum(1)
+        self.from_input.setMaximum(len(self.image_file_list))
+        self.from_input.setSingleStep(1)
+        self.from_input.setValue(self.start_index)
+        range_layout.addWidget(from_label)
+        range_layout.addWidget(self.from_input)
 
-        self.confirm_button = QtWidgets.QPushButton(self.tr("Confirm"), self)
-        self.confirm_button.clicked.connect(self.confirm_changes)
+        to_label = QtWidgets.QLabel("To:")
+        self.to_input = QtWidgets.QSpinBox()
+        self.to_input.setMinimum(1)
+        self.to_input.setMaximum(len(self.image_file_list))
+        self.to_input.setSingleStep(1)
+        self.to_input.setValue(len(self.image_file_list))
+        range_layout.addWidget(to_label)
+        range_layout.addWidget(self.to_input)
 
-        self.buttons_layout.addWidget(self.cancel_button)
-        self.buttons_layout.addWidget(self.confirm_button)
+        self.range_button = QtWidgets.QPushButton("Go")
+        range_layout.addWidget(self.range_button)
+        self.range_button.clicked.connect(self.update_range)
+
+        # Add stretch to center the widgets
+        range_layout.addStretch(1)
 
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.table_widget)
-        layout.addLayout(self.buttons_layout)
+        layout.addLayout(range_layout)
 
         self.populate_table()
+
+    def get_image_file_list(self):
+        image_file_list = []
+        count = self.parent.file_list_widget.count()
+        for c in range(count):
+            image_file = self.parent.file_list_widget.item(c).text()
+            image_file_list.append(image_file)
+        return image_file_list
 
     def move_to_center(self):
         qr = self.frameGeometry()
@@ -161,7 +467,6 @@ class LabelModifyDialog(QtWidgets.QDialog):
     def on_delete_checkbox_changed(self, row, state):
         value_item = self.table_widget.item(row, 2)
         delete_checkbox = self.table_widget.cellWidget(row, 1)
-        hidden_checkbox = self.table_widget.cellWidget(row, 3)
 
         if state == QtCore.Qt.Checked:
             value_item.setFlags(value_item.flags() & ~QtCore.Qt.ItemIsEditable)
@@ -177,8 +482,7 @@ class LabelModifyDialog(QtWidgets.QDialog):
         else:
             delete_checkbox.setCheckable(True)
 
-    def confirm_changes(self):
-
+    def confirm_changes(self, start_index: int = -1, end_index: int = -1):
         total_num = self.table_widget.rowCount()
         if total_num == 0:
             self.reject()
@@ -215,9 +519,7 @@ class LabelModifyDialog(QtWidgets.QDialog):
             else:
                 updated_label_info[label] = self.parent.label_info[label]
 
-        # Try to modify labels
-        if self.modify_label():
-            # If modification is successful, update self.parent.label_info
+        if self.modify_label(start_index, end_index):
             self.parent.label_info = updated_label_info
             QtWidgets.QMessageBox.information(
                 self,
@@ -230,9 +532,23 @@ class LabelModifyDialog(QtWidgets.QDialog):
                 self, "Warning", "An error occurred while updating the labels."
             )
 
-    def modify_label(self):
+    def modify_label(self, start_index: int = -1, end_index: int = -1):
         try:
-            for label_file in self.label_file_list:
+            if start_index == -1:
+                start_index = self.start_index
+            if end_index == -1:
+                end_index = self.end_index
+            for i, image_file in enumerate(self.image_file_list):
+                if i < start_index - 1 or i > end_index - 1:
+                    continue
+                label_dir, filename = os.path.split(image_file)
+                if self.parent.output_dir:
+                    label_dir = self.parent.output_dir
+                label_file = os.path.join(
+                    label_dir, os.path.splitext(filename)[0] + ".json"
+                )
+                if not os.path.exists(label_file):
+                    continue
                 with open(label_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
                 src_shapes, dst_shapes = data["shapes"], []
@@ -248,13 +564,21 @@ class LabelModifyDialog(QtWidgets.QDialog):
                     json.dump(data, f, indent=2, ensure_ascii=False)
             return True
         except Exception as e:
-            print(f"Error occurred while updating labels: {e}")
+            logger.error(f"Error occurred while updating labels: {e}")
             return False
 
     def init_label_info(self):
         classes = set()
 
-        for label_file in self.label_file_list:
+        for image_file in self.image_file_list:
+            label_dir, filename = os.path.split(image_file)
+            if self.parent.output_dir:
+                label_dir = self.parent.output_dir
+            label_file = os.path.join(
+                label_dir, os.path.splitext(filename)[0] + ".json"
+            )
+            if not os.path.exists(label_file):
+                continue
             with open(label_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
             shapes = data.get("shapes", [])
@@ -294,6 +618,34 @@ class LabelModifyDialog(QtWidgets.QDialog):
                 color=color,
                 opacity=opacity,
             )
+
+    def update_range(self):
+        from_value = (
+            int(self.from_input.text())
+            if self.from_input.text()
+            else self.start_index
+        )
+        to_value = (
+            int(self.to_input.text())
+            if self.to_input.text()
+            else self.end_index
+        )
+        if (
+            (from_value > to_value)
+            or (from_value < 1)
+            or (to_value > len(self.image_file_list))
+        ):
+            self.from_input.setValue(1)
+            self.to_input.setValue(len(self.image_file_list))
+            QtWidgets.QMessageBox.information(
+                self,
+                self.tr("Invalid Range"),
+                self.tr("Please enter a valid range."),
+            )
+        else:
+            self.start_index = from_value
+            self.end_index = to_value
+            self.confirm_changes(self.start_index, self.end_index)
 
 
 class TextInputDialog(QtWidgets.QDialog):
@@ -456,7 +808,7 @@ class LabelDialog(QtWidgets.QDialog):
         if labels:
             self.label_list.addItems(labels)
         if self._sort_labels:
-            self.label_list.sortItems()
+            self.sort_labels()
         else:
             self.label_list.setDragDropMode(
                 QtWidgets.QAbstractItemView.InternalMove
@@ -512,7 +864,8 @@ class LabelDialog(QtWidgets.QDialog):
                 )  # Show the list when an item is added
             else:
                 raise ValueError
-        except:
+        except Exception as e:
+            logger.error(f"An Error occurred while adding linking pair: {e}")
             QtWidgets.QMessageBox.warning(
                 self,
                 self.tr("Invalid Input"),
@@ -523,7 +876,7 @@ class LabelDialog(QtWidgets.QDialog):
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Delete:
-            if hasattr(self, 'linking_list') and self.linking_list is not None:
+            if hasattr(self, "linking_list") and self.linking_list is not None:
                 selected_items = self.linking_list.selectedItems()
                 if selected_items:
                     for item in selected_items:
@@ -545,16 +898,33 @@ class LabelDialog(QtWidgets.QDialog):
     def get_last_label(self):
         return self._last_label
 
-    def add_label_history(self, label):
-        self._last_label = label
+    def sort_labels(self):
+        items = []
+        for index in range(self.label_list.count()):
+            items.append(self.label_list.item(index).text())
+
+        items.sort(key=natural_sort_key)
+        self.label_list.clear()
+        self.label_list.addItems(items)
+
+    def add_label_history(self, label, update_last_label=True):
+        if update_last_label:
+            self._last_label = label
         if self.label_list.findItems(label, QtCore.Qt.MatchExactly):
             return
         self.label_list.addItem(label)
         if self._sort_labels:
-            self.label_list.sortItems()
+            self.sort_labels()
+        items = self.label_list.findItems(label, QtCore.Qt.MatchExactly)
+        if items:
+            self.label_list.setCurrentItem(items[0])
 
     def label_selected(self, item):
-        self.edit.setText(item.text())
+        if item is not None:
+            self.edit.setText(item.text())
+        else:
+            # Clear the edit field if no item is selected
+            self.edit.clear()
 
     def validate(self):
         text = self.edit.text()
@@ -684,7 +1054,7 @@ class LabelDialog(QtWidgets.QDialog):
 
         if items:
             if len(items) != 1:
-                logger.warning("Label list has duplicate '%s'", text)
+                logger.warning(f"Label list has duplicate '{text}'")
             self.label_list.setCurrentItem(items[0])
             row = self.label_list.row(items[0])
             self.edit.completer().setCurrentRow(row)

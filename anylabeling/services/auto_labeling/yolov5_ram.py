@@ -1,13 +1,13 @@
-import logging
 import os
-
 import cv2
 import numpy as np
+
 from PyQt5 import QtCore
 from PyQt5.QtCore import QCoreApplication
 
 from anylabeling.app_info import __preferred_device__
 from anylabeling.views.labeling.shape import Shape
+from anylabeling.views.labeling.logger import logger
 from anylabeling.views.labeling.utils.opencv import qt_img_to_rgb_cv_img
 from .types import AutoLabelingResult
 from .__base__.yolo import YOLO
@@ -113,6 +113,7 @@ class YOLOv5_RAM(YOLO):
         """
         h, w = self.ram_input_shape
         image = cv2.resize(input_image, (w, h))
+        image /= 255.0
         mean = np.array([0.485, 0.456, 0.406])
         std = np.array([0.229, 0.224, 0.225])
         image = (image - mean) / std
@@ -148,8 +149,8 @@ class YOLOv5_RAM(YOLO):
         try:
             image = qt_img_to_rgb_cv_img(image, image_path)
         except Exception as e:  # noqa
-            logging.warning("Could not inference model")
-            logging.warning(e)
+            logger.warning("Could not inference model")
+            logger.warning(e)
             return []
 
         blob = self.preprocess(image, upsample_mode="letterbox")
@@ -177,20 +178,22 @@ class YOLOv5_RAM(YOLO):
 
     @staticmethod
     def load_tag_list():
-        current_dir = os.path.dirname(__file__)
-        tag_list_file = os.path.join(
-            current_dir, "configs", "ram_tag_list.txt"
-        )
-        tag_list_chinese_file = os.path.join(
-            current_dir, "configs", "ram_tag_list_chinese.txt"
-        )
+        import importlib.resources as pkg_resources
+        from anylabeling.services.auto_labeling import configs
 
-        with open(tag_list_file, "r", encoding="utf-8") as f:
-            tag_list = f.read().splitlines()
-        tag_list = np.array(tag_list)
-        with open(tag_list_chinese_file, "r", encoding="utf-8") as f:
-            tag_list_chinese = f.read().splitlines()
-        tag_list_chinese = np.array(tag_list_chinese)
+        try:
+            tag_list = pkg_resources.read_text(
+                configs.ram, "ram_tag_list.txt"
+            ).splitlines()
+            tag_list = np.array(tag_list)
+
+            tag_list_chinese = pkg_resources.read_text(
+                configs.ram, "ram_tag_list_chinese.txt"
+            ).splitlines()
+            tag_list_chinese = np.array(tag_list_chinese)
+        except Exception as e:
+            logger.error(f"Error loading tag list: {e}")
+            return np.array([]), np.array([])
 
         return tag_list, tag_list_chinese
 

@@ -1,13 +1,11 @@
-import logging
 import os
 
-import cv2
-import numpy as np
 from PyQt5 import QtCore
 from PyQt5.QtCore import QCoreApplication
 
 from anylabeling.app_info import __preferred_device__
 from anylabeling.views.labeling.shape import Shape
+from anylabeling.views.labeling.logger import logger
 from anylabeling.views.labeling.utils.opencv import qt_img_to_rgb_cv_img
 from .model import Model
 from .types import AutoLabelingResult
@@ -75,8 +73,8 @@ class RTMDet_Pose(Model):
         try:
             image = qt_img_to_rgb_cv_img(image, image_path)
         except Exception as e:  # noqa
-            logging.warning("Could not inference model")
-            logging.warning(e)
+            logger.warning("Could not inference model")
+            logger.warning(e)
             return []
 
         det_results = self.rtmdet(image)
@@ -98,7 +96,7 @@ class RTMDet_Pose(Model):
             img = image[y1:y2, x1:x2]
             try:
                 keypoints, scores = self.pose(img)
-            except:
+            except Exception:
                 keypoints, scores = [], []
             if not self.pose and len(keypoints) == 0:
                 continue

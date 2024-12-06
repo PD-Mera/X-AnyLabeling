@@ -17,8 +17,8 @@ show_degrees: false
 show_shapes: true
 show_linking: true
 logger_level: info
-save_mode: default
 system_clipboard: false
+switch_to_checked: false
 
 flags: null
 label_flags: null
@@ -101,8 +101,10 @@ shortcuts:
   delete_file: Ctrl+Delete
   delete_image_file: Ctrl+Shift+Delete
 
-  open_next: [D, Ctrl+Shift+D]
-  open_prev: [A, Ctrl+Shift+A]
+  open_next: D
+  open_prev: A
+  open_next_unchecked: Ctrl+Shift+D
+  open_prev_unchecked: Ctrl+Shift+A
 
   zoom_in: [Ctrl++, Ctrl+=]
   zoom_out: Ctrl+-
@@ -126,6 +128,7 @@ shortcuts:
   undo_last_point: Ctrl+Z
   add_point_to_edge: Ctrl+Shift+P
   edit_label: Ctrl+E
+  edit_group_id: Alt+G
   toggle_keep_prev_mode: Ctrl+P
   remove_selected_point: Backspace
   group_selected_shapes: G
@@ -136,12 +139,13 @@ shortcuts:
   show_texts: Ctrl+T
   show_labels: Ctrl+L
   show_linking: Ctrl+K
+  union_selected_shapes: Ctrl+Shift+M
   toggle_auto_use_last_label: Ctrl+Y
   toggle_visibility_shapes: Ctrl+H
 
   auto_label: Ctrl+A
   auto_run: Ctrl+M
-
+  loop_thru_labels: Ctrl+Shift+N
 
 # Auto labeling
 custom_models: []

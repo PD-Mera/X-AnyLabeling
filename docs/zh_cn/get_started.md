@@ -10,7 +10,7 @@
 
 **步骤 0.** 从[官方网站](https://docs.anaconda.com/miniconda/)下载并安装 Miniconda。
 
-**步骤 1.** 创建一个 Python 版本为 3.8 或更高版本的 conda 环境，并激活它。
+**步骤 1.** 创建一个 Python 3.8+ 版本的 conda 环境，并激活它。
 
 ```bash
 conda create --name x-anylabeling python=3.9 -y
@@ -18,6 +18,14 @@ conda activate x-anylabeling
 ```
 
 #### 1.1.2 安装
+
+**可选功能安装**
+
+> [!NOTE]
+> 如需使用以下高级功能，请参考相应文档安装额外依赖。
+>
+> 1. 基于 Segment-Anything-2 的视频目标追踪：[安装指南](../../examples/interactive_video_object_segmentation/README.md)
+> 2. 基于 UPN 的目标候选框生成：[安装指南](../../examples/detection/hbb/README.md)
 
 **步骤 0.** 安装 [ONNX Runtime](https://onnxruntime.ai/)。
 
@@ -36,7 +44,10 @@ pip install onnxruntime-gpu --extra-index-url https://aiinfra.pkgs.visualstudio.
 > 对于 GPU 加速，请按照以下说明，确保您本地的 CUDA 和 cuDNN 版本与 ONNX Runtime 版本兼容，并安装需要依赖库，以确保 GPU 加速推理正常：</br>
 > Ⅰ. [CUDA Execution Provider](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html)</br>
 > Ⅱ. [Get started with ONNX Runtime in Python](https://onnxruntime.ai/docs/get-started/with-python.html)</br>
-> Ⅲ. ONNX Runtime 版本需大于等于 1.16.0.
+> Ⅲ. [ONNX Runtime Compatibility](https://onnxruntime.ai/docs/reference/compatibility.html)
+
+> [!NOTE]
+> 请注意，ONNX Runtime 的版本需大于等于 1.16.0。
 
 **步骤 1.** 克隆代码仓库。
 
@@ -129,7 +140,7 @@ python anylabeling/app.py
 
 ### 1.2 从 GUI 运行
 
-> 下载链接: [Github](https://github.com/CVHub520/X-AnyLabeling/releases) | [百度网盘](https://pan.baidu.com/s/1uI9pDYuOh-59qINQ6wTS_g?pwd=s00l)
+> 下载链接: [Github](https://github.com/CVHub520/X-AnyLabeling/releases) | [百度网盘](https://pan.baidu.com/s/1gzle9K1_84j9z1YkDuOpmA?pwd=ucqe)
 
 相比于从源代码运行，GUI 运行环境提供了更便捷的体验，用户无需深入了解底层实现，只需解压便可直接使用。然而，其也存在一些问题，包括：
 - **故障排除困难:** 如果发生崩溃或错误，可能难以快速定位具体原因，从而增加了故障排除的难度。
@@ -175,6 +186,9 @@ bash scripts/build_executable.sh linux-cpu
 
 # Linux-GPU
 bash scripts/build_executable.sh linux-gpu
+
+# macOS
+bash scripts/build_executable.sh macos
 ```
 
 注意：如果在 Windows 上执行上述命令时遇到权限问题，在确保完成上述准备步骤后，可以根据需要直接执行以下命令：

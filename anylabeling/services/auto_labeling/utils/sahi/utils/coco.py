@@ -57,9 +57,11 @@ class CocoCategory:
         return cls(
             id=category["id"],
             name=category["name"],
-            supercategory=category["supercategory"]
-            if "supercategory" in category
-            else category["name"],
+            supercategory=(
+                category["supercategory"]
+                if "supercategory" in category
+                else category["name"]
+            ),
         )
 
     @property
@@ -1101,7 +1103,7 @@ class Coco:
             raise TypeError("coco_dict_or_path should be a dict or str")
 
         # load coco dict if path is given
-        if type(coco_dict_or_path) == str:
+        if isinstance(coco_dict_or_path, str):
             coco_dict = load_json(coco_dict_or_path)
         else:
             coco_dict = coco_dict_or_path
@@ -2473,7 +2475,7 @@ class CocoVid:
             category: CocoCategory
         """
 
-        if type(category) != CocoCategory:
+        if not isinstance(category, CocoCategory):
             raise TypeError("category must be a CocoCategory instance")
         self.categories.append(category)
 
@@ -2499,7 +2501,7 @@ class CocoVid:
             video: CocoVideo
         """
 
-        if type(video) != CocoVideo:
+        if not isinstance(video, CocoVideo):
             raise TypeError("video must be a CocoVideo instance")
         self.videos.append(video)
 

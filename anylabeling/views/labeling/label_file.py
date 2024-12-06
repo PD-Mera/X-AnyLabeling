@@ -45,31 +45,10 @@ class LabelFile:
     @staticmethod
     def load_image_file(filename, default=None):
         try:
-            # NOTE: This method includes a temporary workaround for handling EXIF orientation.
-            # It may result in a slight performance overhead due to the additional processing and file I/O.
-            # A more efficient solution should be considered in the future.
-            from PIL import Image, ExifTags
-
-            with Image.open(filename) as img:
-                exif_data = None
-                if hasattr(img, "_getexif"):
-                    exif_data = img._getexif()
-                if exif_data is not None:
-                    for tag, value in exif_data.items():
-                        tag_name = ExifTags.TAGS.get(tag, tag)
-                        if tag_name != "Orientation":
-                            continue
-                        if value == 3:
-                            img = img.rotate(180, expand=True)
-                        elif value == 6:
-                            img = img.rotate(270, expand=True)
-                        elif value == 8:
-                            img = img.rotate(90, expand=True)
-                        img.save(filename)
             with open(filename, "rb") as f:
                 return f.read()
-        except:
-            logger.error("Failed opening image file: %s", filename)
+        except Exception:
+            logger.error(f"Failed opening image file: {filename}")
             return default
 
     def load(self, filename):
@@ -88,7 +67,7 @@ class LabelFile:
             version = data.get("version")
             if version is None:
                 logger.warning(
-                    "Loading JSON file (%s) of unknown version", filename
+                    f"Loading JSON file ({filename}) of unknown version"
                 )
 
             # Deprecated
@@ -134,7 +113,7 @@ class LabelFile:
                 other_data[key] = value
 
         # Add new fields if not available
-        other_data["text"] = other_data.get("text", "")
+        other_data["description"] = other_data.get("description", "")
 
         # Only replace data after everything is loaded.
         self.flags = flags
