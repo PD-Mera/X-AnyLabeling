@@ -26,6 +26,7 @@ conda activate x-anylabeling
 >
 > 1. 基于 Segment-Anything-2 的视频目标追踪：[安装指南](../../examples/interactive_video_object_segmentation/README.md)
 > 2. 基于 UPN 的目标候选框生成：[安装指南](../../examples/detection/hbb/README.md)
+> 3. 基于视觉和文本提示的交互式目标检测和分割：[安装指南](../../examples/detection/hbb/README.md)
 
 **步骤 0.** 安装 [ONNX Runtime](https://onnxruntime.ai/)。
 
@@ -140,7 +141,7 @@ python anylabeling/app.py
 
 ### 1.2 从 GUI 运行
 
-> 下载链接: [Github](https://github.com/CVHub520/X-AnyLabeling/releases) | [百度网盘](https://pan.baidu.com/s/1gzle9K1_84j9z1YkDuOpmA?pwd=ucqe)
+> 下载链接: [Github](https://github.com/CVHub520/X-AnyLabeling/releases)
 
 相比于从源代码运行，GUI 运行环境提供了更便捷的体验，用户无需深入了解底层实现，只需解压便可直接使用。然而，其也存在一些问题，包括：
 - **故障排除困难:** 如果发生崩溃或错误，可能难以快速定位具体原因，从而增加了故障排除的难度。
