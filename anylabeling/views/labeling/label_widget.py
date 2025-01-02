@@ -3042,19 +3042,13 @@ class LabelingWidget(LabelDialog):
             if osp.dirname(filename) and not osp.exists(osp.dirname(filename)):
                 os.makedirs(osp.dirname(filename))
 
-            if image_data is None:
-                w, h = utils.get_pil_img_dim(self.image_path)
-            else:
-                h = self.image.height()
-                w = self.image.width()
-
             label_file.save(
                 filename=filename,
                 shapes=shapes,
                 image_path=image_path,
                 image_data=image_data,
-                image_height=h,
-                image_width=w,
+                image_height=self.image.height(),
+                image_width=self.image.width(),
                 other_data=self.other_data,
                 flags=flags,
             )
@@ -5978,7 +5972,7 @@ class LabelingWidget(LabelDialog):
 
             self.image_index += 1
             if not self.cancel_processing:
-                delay_ms = 0.1
+                delay_ms = 1
                 self.canvas.is_painting = False
                 QtCore.QTimer.singleShot(
                     delay_ms, lambda: self.process_next_image(progress_dialog)
