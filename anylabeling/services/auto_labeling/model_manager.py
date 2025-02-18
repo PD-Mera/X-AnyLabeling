@@ -43,6 +43,7 @@ class ModelManager(QObject):
         "clrnet",
         "ppocr_v4",
         "yolov5_sam",
+        "yolov8_sam2",
         "efficientvit_sam",
         "yolov5_track",
         "damo_yolo",
@@ -53,7 +54,6 @@ class ModelManager(QObject):
         "grounding_dino",
         "yolov5_obb",
         "gold_yolo",
-        "yolov8_efficientvit_sam",
         "ram",
         "yolov5_seg",
         "yolov5_ram",
@@ -1013,11 +1013,11 @@ class ModelManager(QObject):
                 return
             # Request next files for prediction
             self.request_next_files_requested.emit()
-        elif model_config["type"] == "yolov8_efficientvit_sam":
-            from .yolov8_efficientvit_sam import YOLOv8_EfficientViT_SAM
+        elif model_config["type"] == "yolov8_sam2":
+            from .yolov8_sam2 import YOLOv8SegmentAnything2
 
             try:
-                model_config["model"] = YOLOv8_EfficientViT_SAM(
+                model_config["model"] = YOLOv8SegmentAnything2(
                     model_config, on_message=self.new_model_status.emit
                 )
                 self.auto_segmentation_model_selected.emit()
@@ -1966,7 +1966,6 @@ class ModelManager(QObject):
             "sam_hq",
             "yolov5_sam",
             "efficientvit_sam",
-            "yolov8_efficientvit_sam",
             "grounding_sam",
             "grounding_sam2",
             "open_vision",
@@ -2020,6 +2019,7 @@ class ModelManager(QObject):
             "yolov6",
             "yolov6_face",
             "yolov7",
+            "yolov8_sam2",
             "yolov8_obb",
             "yolov8_pose",
             "yolov8_seg",
@@ -2062,6 +2062,7 @@ class ModelManager(QObject):
             "yolov5",
             "yolov6",
             "yolov7",
+            "yolov8_sam2",
             "yolov8_obb",
             "yolov8_pose",
             "yolov8_seg",
@@ -2102,6 +2103,7 @@ class ModelManager(QObject):
             "yolov5",
             "yolov6",
             "yolov7",
+            "yolov8_sam2",
             "yolov8_obb",
             "yolov8_pose",
             "yolov8_seg",
@@ -2259,8 +2261,8 @@ class ModelManager(QObject):
             "sam_med2d",
             "sam_hq",
             "yolov5_sam",
+            "yolov8_sam2",
             "efficientvit_sam",
-            "yolov8_efficientvit_sam",
             "grounding_sam",
             "grounding_sam2",
             "edge_sam",
