@@ -1,18 +1,39 @@
-from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QGraphicsDropShadowEffect
+import os
+
+from PyQt5.QtWidgets import (
+    QWidget,
+    QLabel,
+    QVBoxLayout,
+    QGraphicsDropShadowEffect,
+    QApplication,
+)
 from PyQt5.QtCore import Qt, QTimer, QRectF
 from PyQt5.QtGui import QPainter, QPainterPath, QColor
 
 
+def is_wsl():
+    """ Check if running in WSL """
+    if os.path.exists('/proc/version'):
+        with open('/proc/version', 'r') as f:
+            if 'microsoft' in f.read().lower():
+                return True
+    return False
+
+
 class Popup(QWidget):
     def __init__(self, text, parent=None, msec=5000):
-        super().__init__(parent, Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        super().__init__(
+            parent, Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+        )
 
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QWidget {
                 background-color: #f2edec;
                 border-radius: 16px;
             }
-        """)
+        """
+        )
 
         layout = QVBoxLayout()
 
@@ -49,7 +70,19 @@ class Popup(QWidget):
 
         painter.fillPath(path, QColor("#f2edec"))
 
-    def show_popup(self, parent_widget, popup_width=350, popup_height=50):
+    def show_popup(self, parent_widget, copy_msg="", popup_width=350, popup_height=50):
+
+        if copy_msg:
+            if is_wsl():
+                # Use clip.exe for WSL environment
+                escaped_msg = copy_msg.replace('"', '\\"')
+                os.system(f'echo "{escaped_msg}" | clip.exe')
+            else:
+                # Use Qt clipboard for Windows/other environments
+                clipboard = QApplication.clipboard()
+                clipboard.setText(self.copy_msg)
+            self.close()
+
         # Calculate the position to place the popup at the top center
         parent_geo = parent_widget.geometry()
 
