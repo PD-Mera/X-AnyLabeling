@@ -1,5 +1,47 @@
 # X-AnyLabeling Changelog
 
+## `v3.0.0` (May 10, 2025)
+
+### 🚀 New Features
+
+- Add ffmpeg acceleration and non-ASCII path support (#891)
+- Allow downloading models from [ModelScope](https://www.modelscope.cn/collections/X-AnyLabeling-7b0e1798bcda43) in addition to existing sources
+- Enable one-click import and export of labels for [VLM-R1-OVD](https://github.com/om-ai-lab/VLM-R1)
+- Enable the [Chatbot](./docs/en/chatbot.md) to annotate multimodal datasets for Vision-Language Models (VLMs)
+- Enable automatic saving of group IDs when grouping or ungrouping shapes using shortcut keys G (group) and U (ungroup). (#855)
+- Introduce GroupID filter and improve label filtering functionality (#686)
+- Support [GeCo](./examples/counting/geco/README.md) zero-shot counting model (#863)
+- Support [Grounding-DINO-1.6-API](https://algos.deepdataspace.com/en#/model/grounding_dino) open-set object detection model
+- Support [YOLO12](https://arxiv.org/abs/2502.12524) object detection model
+- Support [D-FINE](./tools/onnx_exporter/export_dfine_onnx.py) object detection model
+- Support [RF-DETR](./tools/onnx_exporter/export_rfdetr_onnx.py) object detection model
+
+### 🐛 Bug Fixes
+
+- Fix bug in `predict_shapes` for `Florence-2` model (#913)
+- Replace `os_sorted` with `natsorted` to avoid potential segfault (#906)
+- Merge multi-part segmentations into single instance on export (#910)
+- Handle exceptions in model loading by initializing local_model_data to an empty dictionary for improved stability (#901)
+- Prevent UI disappearance when ESC key is pressed during AI annotation (#423)
+- Fixed the bug about exporting the empty labels (#881)
+
+### 🛠️ Improvements
+
+- Move image conversion to avoid redundant processing when using cached embeddings (#915)
+- Add new FAQs addressing common runtime errors and file loading issues, including solutions and references to related GitHub issues (#869, #906, #907)
+- Enhance image processing logic to support dynamic batch handling based on model type, improving efficiency in auto-labeling operations
+- Introduce `iou_threshold` and `conf_threshold` parameters across various model configurations for enhanced detection accuracy
+- Remove imgviz dependency from requirements and update colormap implementation in labeling utilities for improved modularity
+- Optimize batch processing with UI/backend separation (#757)
+- Enhance shape visibility handling in labeling interface (#669)
+- Updated the merge_shapes method to handle both rectangle and polygon shapes, allowing for more versatile shape unions. (#561)
+
+### 🌟 Contributors
+
+A total of 8 developers contributed to this release.
+
+Thank @Pecako2001, @liutao, @shyhyawJou, @talebolano, @urbaneman, @wangxiang0722, @Little-King2022, @CVHub520
+
 
 ## `v2.5.4` (Feb 18, 2025)
 

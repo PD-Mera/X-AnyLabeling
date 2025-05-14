@@ -3093,7 +3093,9 @@ class LabelingWidget(LabelDialog):
                 shape_to_show.visible = True
                 self.canvas.update()
             else:
-                logger.warning(f"Shape associated with the hidden item was not found in label list, could not show.")
+                logger.warning(
+                    f"Shape associated with the hidden item was not found in label list, could not show."
+                )
 
     def get_next_files(self, filename, num_files):
         """Get the next files in the list."""
@@ -3754,7 +3756,7 @@ class LabelingWidget(LabelDialog):
     def remove_selected_point(self):
         self.canvas.remove_selected_point()
         self.canvas.update()
-        if not self.canvas.h_hape.points:
+        if self.canvas.h_hape and not self.canvas.h_hape.points:
             self.canvas.delete_shape(self.canvas.h_hape)
             self.remove_labels([self.canvas.h_hape])
             self.set_dirty()
