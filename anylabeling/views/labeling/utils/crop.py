@@ -3,6 +3,7 @@ import multiprocessing
 import os
 import os.path as osp
 import shutil
+import sys
 from pathlib import Path
 
 import cv2
@@ -86,8 +87,16 @@ def crop_and_save(
     # Crop image with bounds checking
     height, width = image.shape[:2]
     xmin, ymin = max(0, xmin), max(0, ymin)
-    xmax, ymax = min(width - 1, xmax), min(height - 1, ymax)
+    xmax, ymax = min(width, xmax), min(height, ymax)
+
+    if xmin >= xmax or ymin >= ymax:
+        logger.warning(f"Invalid crop region: xmin={xmin}, xmax={xmax}, ymin={ymin}, ymax={ymax}")
+        return
+
     cropped_image = image[ymin:ymax, xmin:xmax]
+    if cropped_image.size == 0:
+        logger.warning(f"Empty cropped image, skipping save")
+        return
 
     # Create output directory
     dst_path = Path(save_path) / label
@@ -102,8 +111,9 @@ def crop_and_save(
     # Save image safely handling non-ASCII paths
     try:
         is_success, buf = cv2.imencode(".jpg", cropped_image)
-        if is_success:
-            buf.tofile(str(dst_file))
+        if is_success and buf is not None:
+            with open(str(dst_file), "wb") as f:
+                f.write(buf.tobytes())
         else:
             raise ValueError(f"Failed to save image: {dst_file}")
     except Exception as e:
@@ -171,8 +181,16 @@ def process_single_image(args):
 
             height, width = image.shape[:2]
             xmin, ymin = max(0, x), max(0, y)
-            xmax, ymax = min(width - 1, x + w), min(height - 1, y + h)
+            xmax, ymax = min(width, x + w), min(height, y + h)
+
+            if xmin >= xmax or ymin >= ymax:
+                logger.warning(f"Invalid crop region: xmin={xmin}, xmax={xmax}, ymin={ymin}, ymax={ymax}")
+                continue
+
             cropped_image = image[ymin:ymax, xmin:xmax]
+            if cropped_image.size == 0:
+                logger.warning(f"Empty cropped image for {dst_file}")
+                continue
 
             dst_path = Path(save_path) / label
             dst_path.mkdir(parents=True, exist_ok=True)
@@ -183,8 +201,9 @@ def process_single_image(args):
 
             try:
                 is_success, buf = cv2.imencode(".jpg", cropped_image)
-                if is_success:
-                    buf.tofile(str(dst_file))
+                if is_success and buf is not None:
+                    with open(str(dst_file), "wb") as f:
+                        f.write(buf.tobytes())
                 else:
                     raise ValueError(f"Failed to save image: {dst_file}")
             except Exception as e:
@@ -359,7 +378,6 @@ def save_crop(self):
     QApplication.processEvents()
 
     try:
-        num_cores = max(1, int(multiprocessing.cpu_count() * 0.9))
         image_file_list = (
             [self.filename] if not self.image_list else self.image_list
         )
@@ -395,17 +413,31 @@ def save_crop(self):
             for image_file in image_file_list
         ]
 
-        with multiprocessing.Pool(processes=num_cores) as pool:
-            for i, _ in enumerate(
-                pool.imap(process_single_image, process_args)
-            ):
+        is_frozen = getattr(sys, 'frozen', False)
+        
+        if is_frozen:
+            logger.info("Running in PyInstaller environment, using single-thread processing")
+            for i, args in enumerate(process_args):
+                process_single_image(args)
                 progress_dialog.setValue(i + 1)
                 QApplication.processEvents()
 
                 if progress_dialog.wasCanceled():
-                    pool.terminate()
-                    pool.join()
                     return
+        else:
+            # Use multiprocessing to process images in parallel in the dev environment only.
+            num_cores = max(1, int(multiprocessing.cpu_count() * 0.9))
+            with multiprocessing.Pool(processes=num_cores) as pool:
+                for i, _ in enumerate(
+                    pool.imap(process_single_image, process_args)
+                ):
+                    progress_dialog.setValue(i + 1)
+                    QApplication.processEvents()
+
+                    if progress_dialog.wasCanceled():
+                        pool.terminate()
+                        pool.join()
+                        return
 
         progress_dialog.close()
         popup = Popup(
