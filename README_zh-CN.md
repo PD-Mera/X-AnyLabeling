@@ -19,10 +19,15 @@
 
 ![](https://user-images.githubusercontent.com/18329471/234640541-a6a65fbc-d7a5-4ec3-9b65-55305b01a7aa.png)
 
-<video src="https://github.com/user-attachments/assets/f517fa94-c49c-4f05-864e-96b34f592079" width="100%" controls>
+<video src="https://github.com/user-attachments/assets/c0ab2056-2743-4a2c-ba93-13f478d3481e" width="100%" controls>
 </video>
 
-</br>
+<details>
+<summary><strong>自动化标注</strong></summary>
+
+<video src="https://github.com/user-attachments/assets/f517fa94-c49c-4f05-864e-96b34f592079" width="100%" controls>
+</video>
+</details>
 
 <details>
 <summary><strong>基于文本/视觉提示或免提示的检测和分割统一模型</strong></summary>
@@ -59,10 +64,8 @@
 
 ## 🥳 新功能
 
-- X-AnyLabeling [v3.1.2](https://github.com/CVHub520/X-AnyLabeling/releases/tag/v3.1.2) 最新版本发布
-- 新增支持 **自动掩码解码 (AMD)** 模式，用于 Segment Anything 系列模型的连续点追踪分割任务
-- 新增支持 [RF-DETR](https://github.com/roboflow/rf-detr/tree/develop) 目标检测模型（Medium, Small, Nano）
-- 新增支持 [MM-Grounding-DINO](https://github.com/open-mmlab/mmdetection/blob/main/configs/mm_grounding_dino/README.md) 标签导入
+- 在 X-AnyLabeling 中内置一键训练功能，支持 Ultralytics 官方 Detect、Segment、OBB、Pose 四大任务 [链接](./examples/training/ultralytics/README.md)
+- X-AnyLabeling [v3.2.0](https://github.com/CVHub520/X-AnyLabeling/releases/tag/v3.2.0) 最新版本发布
 - 更多详情，请参考[更新日志](./CHANGELOG.md)
 
 
