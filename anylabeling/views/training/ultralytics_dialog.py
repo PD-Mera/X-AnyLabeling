@@ -1,4 +1,5 @@
 import csv
+import datetime
 import glob
 import os
 import platform
@@ -134,6 +135,50 @@ class UltralyticsDialog(QDialog):
         self.init_data_tab()
         self.init_config_tab()
         self.init_train_tab()
+
+    def save_training_logs_to_file(self):
+        """Save training logs to a local file with timestamp"""
+        if (
+            not hasattr(self, "log_display")
+            or not self.log_display.toPlainText().strip()
+        ):
+            return
+
+        if not os.path.exists(self.current_project_path):
+            return
+        log_dir_path = os.path.join(self.current_project_path, "logs")
+        os.makedirs(log_dir_path, exist_ok=True)
+
+        try:
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"training_log_{self.training_status}_{timestamp}.txt"
+            log_file_path = os.path.join(log_dir_path, filename)
+
+            with open(log_file_path, "w", encoding="utf-8") as f:
+                f.write(self.log_display.toPlainText())
+
+            logger.info(f"Training logs saved to: {log_file_path}")
+
+        except Exception as e:
+            logger.error(f"Failed to save training logs: {str(e)}")
+
+    def closeEvent(self, event):
+        """Handle window close event"""
+        if self.training_status == "training":
+            QMessageBox.warning(
+                self,
+                self.tr("Training in Progress"),
+                self.tr(
+                    "Cannot close window while training is in progress. Please stop training first."
+                ),
+            )
+            event.ignore()
+            return
+
+        if self.training_status in ["completed", "error", "stop"]:
+            self.save_training_logs_to_file()
+
+        super().closeEvent(event)
 
     def go_to_specific_tab(self, index):
         """Go to specific tab by index"""
@@ -1411,7 +1456,17 @@ class UltralyticsDialog(QDialog):
 
     def open_image_file(self, image_path):
         try:
-            if "microsoft" in os.uname().release.lower():  # WSL2
+            is_wsl2 = False
+            try:
+                if (
+                    hasattr(os, "uname")
+                    and "microsoft" in os.uname().release.lower()
+                ):
+                    is_wsl2 = True
+            except (AttributeError, OSError):
+                pass
+
+            if is_wsl2:  # WSL2
                 windows_path = (
                     subprocess.check_output(["wslpath", "-w", image_path])
                     .decode()
@@ -1440,7 +1495,17 @@ class UltralyticsDialog(QDialog):
             self.current_project_path
         ):
             try:
-                if "microsoft" in os.uname().release.lower():  # WSL2
+                is_wsl2 = False
+                try:
+                    if (
+                        hasattr(os, "uname")
+                        and "microsoft" in os.uname().release.lower()
+                    ):
+                        is_wsl2 = True
+                except (AttributeError, OSError):
+                    pass
+
+                if is_wsl2:  # WSL2
                     wsl_path = self.current_project_path
                     windows_path = (
                         subprocess.check_output(["wslpath", "-w", wsl_path])
