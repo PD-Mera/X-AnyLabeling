@@ -14,6 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtWidgets import (
     QButtonGroup,
+    QCheckBox,
     QComboBox,
     QDockWidget,
     QGridLayout,
@@ -119,6 +120,7 @@ class LabelingWidget(LabelDialog):
         self._config = config
         self.label_flags = self._config["label_flags"]
         self.label_loop_count = -1
+        self.select_loop_count = -1
         self.digit_to_label = None
         self.drawing_digit_shortcuts = self._config.get("digit_shortcuts", {})
 
@@ -852,6 +854,14 @@ class LabelingWidget(LabelDialog):
             tip=self.tr("Loop through labels"),
             enabled=False,
         )
+        loop_select_labels = action(
+            self.tr("&Loop Select Labels"),
+            self.loop_select_labels,
+            shortcut=shortcuts["loop_select_labels"],
+            icon="circle-selection",
+            tip=self.tr("Loop select labels"),
+            enabled=False,
+        )
 
         ultralytics_train = action(
             "Ultralytics",
@@ -1517,6 +1527,8 @@ class LabelingWidget(LabelDialog):
             open_chatbot=open_chatbot,
             open_vqa=open_vqa,
             open_classifier=open_classifier,
+            loop_thru_labels=loop_thru_labels,
+            loop_select_labels=loop_select_labels,
             file_menu_actions=(
                 open_,
                 openvideo,
@@ -1589,6 +1601,7 @@ class LabelingWidget(LabelDialog):
                 edit_mode,
                 brightness_contrast,
                 loop_thru_labels,
+                loop_select_labels,
             ),
             on_shapes_present=(save_as, delete),
             hide_selected_polygons=hide_selected_polygons,
@@ -1742,6 +1755,7 @@ class LabelingWidget(LabelDialog):
                 show_navigator,
                 fill_drawing,
                 loop_thru_labels,
+                loop_select_labels,
                 None,
                 zoom_in,
                 zoom_out,
@@ -1804,6 +1818,7 @@ class LabelingWidget(LabelDialog):
             delete,
             undo,
             loop_thru_labels,
+            loop_select_labels,
             run_all_images,
             toggle_auto_labeling_widget,
             None,
@@ -1929,14 +1944,48 @@ class LabelingWidget(LabelDialog):
         )
         right_sidebar_layout.addWidget(self.scroll_area)
 
-        # Shape text label
+        # Shape text label with checkbox
         self.shape_text_label = QLabel("Object Text")
         self.shape_text_edit = QPlainTextEdit()
-        right_sidebar_layout.addWidget(
-            self.shape_text_label, 0, Qt.AlignCenter
+        self.description_checkbox = QCheckBox()
+        self.description_checkbox.setChecked(True)
+        self.description_checkbox.toggled.connect(
+            self.toggle_description_visibility
         )
+
+        description_header_layout = QHBoxLayout()
+        description_header_layout.setContentsMargins(0, 2, 0, 2)
+        description_header_layout.addStretch()
+        description_header_layout.addWidget(self.shape_text_label)
+        description_header_layout.addStretch()
+        description_header_layout.addWidget(self.description_checkbox)
+        description_header_widget = QWidget()
+        description_header_widget.setLayout(description_header_layout)
+
+        right_sidebar_layout.addWidget(description_header_widget)
         right_sidebar_layout.addWidget(self.shape_text_edit)
         right_sidebar_layout.addWidget(self.flag_dock)
+
+        # Labels with checkbox
+        self.labels_checkbox = QCheckBox()
+        self.labels_checkbox.setChecked(True)
+        self.labels_checkbox.toggled.connect(self.toggle_labels_visibility)
+
+        labels_header_layout = QHBoxLayout()
+        labels_header_layout.setContentsMargins(0, 2, 0, 2)
+        labels_header_layout.addStretch()
+        labels_title = QLabel(self.tr("Labels"))
+        labels_header_layout.addWidget(labels_title)
+        labels_header_layout.addStretch()
+        labels_header_layout.addWidget(self.labels_checkbox)
+        labels_header_widget = QWidget()
+        labels_header_widget.setLayout(labels_header_layout)
+        right_sidebar_layout.addWidget(labels_header_widget)
+
+        # Hide the original dock title bar
+        empty_widget = QWidget()
+        empty_widget.setFixedHeight(0)
+        self.label_dock.setTitleBarWidget(empty_widget)
         right_sidebar_layout.addWidget(self.label_dock)
 
         # Create a horizontal layout for the filters and select button
@@ -2632,6 +2681,19 @@ class LabelingWidget(LabelDialog):
         self.canvas.prev_h_shape = self.canvas.h_hape = item.shape()
         self.canvas.update()
 
+    def loop_select_labels(self):
+        self.select_loop_count += 1
+        if len(self.label_list) == 0 or self.select_loop_count >= len(
+            self.label_list
+        ):
+            self.select_loop_count = -1
+            self.canvas.deselect_shape()
+            return
+
+        item = self.label_list[self.select_loop_count]
+        shape = item.shape()
+        self.canvas.select_shapes([shape])
+
     def copy_to_clipboard(self, text):
         clipboard = QtWidgets.QApplication.clipboard()
         clipboard.setText(text)
@@ -3047,7 +3109,9 @@ class LabelingWidget(LabelDialog):
                         if index >= 0:
                             property_widget.setCurrentIndex(index)
                     elif isinstance(property_widget, QWidget):
-                        for child in property_widget.findChildren(QRadioButton):
+                        for child in property_widget.findChildren(
+                            QRadioButton
+                        ):
                             if child.text() == selected_option:
                                 child.setChecked(True)
                                 break
@@ -3064,7 +3128,9 @@ class LabelingWidget(LabelDialog):
         # Repopulate the QGridLayout with the updated data
         for row, (property, options) in enumerate(current_attibute.items()):
             property_label = QLabel(property)
-            widget_type = self.attribute_widget_types.get(update_category, {}).get(property, "combobox")
+            widget_type = self.attribute_widget_types.get(
+                update_category, {}
+            ).get(property, "combobox")
             if widget_type == "radiobutton":
                 radio_group = QButtonGroup()
                 radio_widget = QWidget()
@@ -4110,6 +4176,7 @@ class LabelingWidget(LabelDialog):
 
         # Reset the label loop count
         self.label_loop_count = -1
+        self.select_loop_count = -1
 
         # TODO(jack): icc profile issue warning
         # - qt.gui.icc: fromIccProfile: failed minimal tag size sanity
@@ -5178,9 +5245,7 @@ class LabelingWidget(LabelDialog):
             self.shape_text_edit.setDisabled(False)
         else:
             self.shape_text_edit.setDisabled(True)
-            self.shape_text_label.setText(
-                self.tr("Switch to Edit mode for description editing")
-            )
+            self.shape_text_label.setText(self.tr("Description"))
             self.shape_text_edit.textChanged.disconnect()
             self.shape_text_edit.setPlainText("")
             self.shape_text_edit.textChanged.connect(self.shape_text_changed)
@@ -5246,3 +5311,16 @@ class LabelingWidget(LabelDialog):
 
         except Exception as e:
             logger.error(f"Failed to load thumbnail image: {str(e)}")
+
+    def toggle_description_visibility(self, checked):
+        self.shape_text_edit.setVisible(checked)
+
+    def toggle_labels_visibility(self, checked):
+        if checked:
+            self.label_dock.widget().setVisible(True)
+            self.label_dock.setMinimumHeight(2)
+            self.label_dock.setMaximumHeight(16777215)
+        else:
+            self.label_dock.widget().setVisible(False)
+            self.label_dock.setMinimumHeight(2)
+            self.label_dock.setMaximumHeight(2)
