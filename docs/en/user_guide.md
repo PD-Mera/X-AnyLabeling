@@ -37,6 +37,7 @@ This guide provides comprehensive instructions for using X-AnyLabeling, covering
       * [5.3 Label Manager](#53-label-manager)
       * [5.4 Shape Type Conversion](#54-shape-type-conversion)
       * [5.5 Digit Shortcut Manager](#55-digit-shortcut-manager)
+      * [5.6 Group ID Manager](#56-group-id-manager)
    * [6. Help and Language](#6-help-and-language)
       * [6.1 About X-AnyLabeling](#61-about-x-anylabeling)
       * [6.2 Setting the Language](#62-setting-the-language)
@@ -545,12 +546,14 @@ The toolbar (usually at the top or integrated with the menu) provides access to 
 
 ### 5.2 Save Cropped Images
 
-This feature saves cropped images of each annotation object (`Tools` > `Save Sub-Images`).
+The cropped image saving function can be implemented through the following steps:
 
-1. Prepare a `classes.txt` file listing the object classes you want to crop. See [`classes.txt`](../../assets/classes.txt) for an example.
-2. Select `Tools` > `Save Sub-Images`.
-3. Provide your `classes.txt` file when prompted.
-4. The cropped images will be saved into a `x-anylabeling-crops` subfolder in the current image directory, organized into subdirectories named after each class.
+1. Click **Tools** > **Save Cropped Images** in the top menu bar.
+2. In the popup dialog, configure:
+   - Save Path: Choose the target folder for saving cropped images
+   - Min Width: Set minimum width in pixels for filtering
+   - Min Height: Set minimum height in pixels for filtering
+3. After clicking OK, the system will automatically export all annotated objects sorted by category name to the specified path.
 
 ### 5.3 Label Manager
 
@@ -605,6 +608,18 @@ digit_shortcuts:
 Digit shortcut settings configured through the GUI interface will be automatically synchronized and saved to the `.xanylabelingrc` configuration file in the current user directory, and will be automatically loaded the next time the software is started. Similarly, if you directly modify the configuration file, the software will automatically recognize and apply these changes after restart.
 
 By properly configuring numeric shortcuts, you can significantly improve labeling efficiency and reduce repetitive operations, particularly suitable for scenarios that require frequent switching between different annotation types.
+
+### 5.6 Group ID Manager
+
+The Group ID Manager is a batch management feature for group ID fields, allowing users to uniformly modify and delete group IDs within a specified range. You can access it in two ways:
+
+- Select **Tools** -> **Group ID Manager** from the top menu bar in the main interface
+- Use the shortcut key **Alt+G**
+
+<p align="center">
+  <img src="../../assets/resources/gid_manager.png" alt="Information">
+</p>
+
 
 ## 6. Help and Language
 
@@ -673,6 +688,7 @@ The default keyboard shortcuts are listed below. You can customize these in the 
 | `Ctrl+h`              | Toggle All Shapes Visibility                     | Show/Hide all annotations on canvas        |
 | `Ctrl+p`              | Toggle Preserve Previous Mode                    | (Needs clarification - likely relates to keeping label/settings) |
 | `Ctrl+y`              | Toggle 'Use Last Label'                          | Auto-fills next shape with previous label  |
+| `Ctrl+Shift+y`        | Toggle 'Use Last Group ID'                       | Auto-fills next gid with previous label    |
 | `Ctrl+m`              | Toggle Batch Mode                                | (Needs clarification - likely multi-image annotation) |
 | `Ctrl+a`              | Toggle Auto-Annotation                           | (Needs clarification - likely AI-assist)   |
 | `Ctrl+s`              | Save Current Annotations                         | Manual save (if auto-save is off)          |

@@ -70,6 +70,9 @@
 
 ## 🥳 新功能
 
+- 新增 --qt-platform 参数以提升 Fedora KDE 环境下的性能表现 (#1145)
+- 新增 Ctrl+Shift+G 快捷键自动使用上一次的群组编号功能 (#1143)
+- 实现异步 EXIF 检测以消除图像加载延迟及画面卡顿现象
 - X-AnyLabeling [v3.2.4](https://github.com/CVHub520/X-AnyLabeling/releases/tag/v3.2.4) 版本发布
 - 新增支持删除对象的组 ID 功能 (#1141)
 - 新增支持 Ultralytics 图像分类任务训练 [[教程](./examples/training/ultralytics/README.md)]
