@@ -915,6 +915,7 @@ class LabelModifyDialog(QtWidgets.QDialog):
         self.table_widget = QTableWidget(self)
         self.table_widget.setColumnCount(len(title_list))
         self.table_widget.setHorizontalHeaderLabels(title_list)
+        self.table_widget.setEditTriggers(QtWidgets.QAbstractItemView.DoubleClicked)
 
         # Set header font and alignment
         for i in range(len(title_list)):
@@ -1375,6 +1376,7 @@ class LabelDialog(QtWidgets.QDialog):
         self.edit.setCompleter(completer)
         # Save last label
         self._last_label = ""
+        self._last_gid = None
 
     def add_linking_pair(self):
         linking_text = self.linking_input.text()
@@ -1431,6 +1433,9 @@ class LabelDialog(QtWidgets.QDialog):
 
     def get_last_label(self):
         return self._last_label
+
+    def get_last_gid(self):
+        return self._last_gid
 
     def sort_labels(self):
         items = []
