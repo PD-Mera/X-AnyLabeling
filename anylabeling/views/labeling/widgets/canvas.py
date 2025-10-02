@@ -22,8 +22,8 @@ AUTO_DECODE_DELAY_MS = 100
 MAX_AUTO_DECODE_MARKS = 42
 AUTO_DECODE_MOVE_THRESHOLD = 5.0
 MOVE_SPEED = 5.0
-LARGE_ROTATION_INCREMENT = 0.1
-SMALL_ROTATION_INCREMENT = 0.01
+LARGE_ROTATION_INCREMENT = math.radians(1.0)
+SMALL_ROTATION_INCREMENT = math.radians(0.1)
 
 LABEL_COLORMAP = label_colormap()
 
@@ -1440,7 +1440,10 @@ class Canvas(
                     (shape.points[0].y() + shape.points[2].y()) / 2,
                 )
                 if self.show_degrees:
-                    degrees = str(int(math.degrees(shape.direction))) + "°"
+                    degrees = math.degrees(shape.direction)
+                    if abs(degrees - 360.0) < 0.1:
+                        degrees = 0.0
+                    degrees = f"{degrees:.1f}°"
                     p.setFont(
                         QtGui.QFont(
                             "Arial",
@@ -2222,6 +2225,16 @@ class Canvas(
                 self.current = None
                 self.drawing_polygon.emit(False)
                 self.update()
+            elif key == QtCore.Qt.Key_Backspace and self.current:
+                if self.create_mode in ["polygon", "linestrip"]:
+                    if len(self.current.points) > 1:
+                        self.current.points.pop()
+                        self.line[0] = self.current[-1]
+                        self.update()
+                    elif len(self.current.points) == 1:
+                        self.current = None
+                        self.drawing_polygon.emit(False)
+                        self.update()
             elif key == QtCore.Qt.Key_Return and self.can_close_shape():
                 self.finalise()
             elif modifiers == QtCore.Qt.AltModifier:
