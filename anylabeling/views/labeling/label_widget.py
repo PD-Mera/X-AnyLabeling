@@ -276,6 +276,8 @@ class LabelingWidget(LabelDialog):
             wheel_rectangle_editing=self._config["canvas"][
                 "wheel_rectangle_editing"
             ],
+            attributes=self._config["canvas"].get("attributes", {}),
+            rotation=self._config["canvas"].get("rotation", {}),
         )
         self.canvas.zoom_request.connect(self.zoom_request)
 

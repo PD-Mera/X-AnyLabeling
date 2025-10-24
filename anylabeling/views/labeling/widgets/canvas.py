@@ -77,6 +77,8 @@ class Canvas(
         self.rect_scale_step = self.wheel_rectangle_editing.get(
             "scale_step", 0.05
         )
+        self.attributes_config = kwargs.pop("attributes", {})
+        self.rotation_config = kwargs.pop("rotation", {})
         self.parent = kwargs.pop("parent")
         super().__init__(*args, **kwargs)
         # Initialise local state.
@@ -138,6 +140,25 @@ class Canvas(
         self.cross_line_width = 2.0
         self.cross_line_color = "#00FF00"
         self.cross_line_opacity = 0.5
+
+        # Set attributes color options.
+        self.attr_background_color = self.attributes_config.get(
+            "background_color", [33, 33, 33, 255]
+        )
+        self.attr_border_color = self.attributes_config.get(
+            "border_color", [66, 66, 66, 255]
+        )
+        self.attr_text_color = self.attributes_config.get(
+            "text_color", [33, 150, 243, 255]
+        )
+
+        # Set rotation increment options.
+        self.large_rotation_increment = math.radians(
+            self.rotation_config.get("large_increment", 1.0)
+        )
+        self.small_rotation_increment = math.radians(
+            self.rotation_config.get("small_increment", 0.1)
+        )
 
         self.is_loading = False
         self.loading_text = self.tr("Loading...")
@@ -1443,7 +1464,7 @@ class Canvas(
                     degrees = math.degrees(shape.direction)
                     if abs(degrees - 360.0) < 0.1:
                         degrees = 0.0
-                    degrees = f"{degrees:.1f}°"
+                    degrees = f"{degrees:.2f}°"
                     p.setFont(
                         QtGui.QFont(
                             "Arial",
@@ -1817,18 +1838,18 @@ class Canvas(
                 if not shape.visible:
                     continue
 
-                background_color = QtGui.QColor(33, 33, 33, 255)
+                background_color = QtGui.QColor(*self.attr_background_color)
                 p.fillRect(rect, background_color)
 
                 pen = QtGui.QPen(
-                    QtGui.QColor(66, 66, 66), 1, Qt.SolidLine
-                )  # Lighter grey border
+                    QtGui.QColor(*self.attr_border_color), 1, Qt.SolidLine
+                )
                 p.setPen(pen)
                 p.drawRect(rect)
 
             pen = QtGui.QPen(
-                QtGui.QColor(33, 150, 243), 1, Qt.SolidLine
-            )  # Material Blue 500
+                QtGui.QColor(*self.attr_text_color), 1, Qt.SolidLine
+            )
             p.setPen(pen)
             p.setFont(font)
 
@@ -2249,13 +2270,13 @@ class Canvas(
             elif key == QtCore.Qt.Key_Right:
                 self.move_by_keyboard(QtCore.QPointF(MOVE_SPEED, 0.0))
             elif key == QtCore.Qt.Key_Z:
-                self.rotate_by_keyboard(LARGE_ROTATION_INCREMENT)
+                self.rotate_by_keyboard(self.large_rotation_increment)
             elif key == QtCore.Qt.Key_X:
-                self.rotate_by_keyboard(SMALL_ROTATION_INCREMENT)
+                self.rotate_by_keyboard(self.small_rotation_increment)
             elif key == QtCore.Qt.Key_C:
-                self.rotate_by_keyboard(-SMALL_ROTATION_INCREMENT)
+                self.rotate_by_keyboard(-self.small_rotation_increment)
             elif key == QtCore.Qt.Key_V:
-                self.rotate_by_keyboard(-LARGE_ROTATION_INCREMENT)
+                self.rotate_by_keyboard(-self.large_rotation_increment)
 
     # QT Overload
     def keyReleaseEvent(self, ev):
