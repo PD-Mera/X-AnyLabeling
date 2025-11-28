@@ -1895,7 +1895,16 @@ class LabelingWidget(LabelDialog):
         self.canvas.auto_decode_finish_requested.connect(
             self.auto_labeling_widget.on_finish_clicked
         )
-        self.canvas.shape_hover_changed.connect(self.update_navigator_shapes)
+        self.canvas.shape_hover_changed.connect(
+            lambda: (
+                self.update_navigator_shapes()
+                if (
+                    hasattr(self, "navigator_dialog")
+                    and self.navigator_dialog.isVisible()
+                )
+                else None
+            )
+        )
         self.auto_labeling_widget.clear_auto_labeling_action_requested.connect(
             self.clear_auto_labeling_marks
         )
@@ -2300,11 +2309,19 @@ class LabelingWidget(LabelDialog):
                 label_file_without_path = osp.basename(label_file)
                 label_file = self.output_dir + "/" + label_file_without_path
             self.save_labels(label_file)
-            self.update_navigator_shapes()
+            if (
+                hasattr(self, "navigator_dialog")
+                and self.navigator_dialog.isVisible()
+            ):
+                self.update_navigator_shapes()
             return
         self.dirty = True
         self.actions.save.setEnabled(True)
-        self.update_navigator_shapes()
+        if (
+            hasattr(self, "navigator_dialog")
+            and self.navigator_dialog.isVisible()
+        ):
+            self.update_navigator_shapes()
         title = __appname__
         if self.filename is not None:
             title = f"{title} - {self.filename}*"
@@ -3665,6 +3682,10 @@ class LabelingWidget(LabelDialog):
         shape.select_fill_color = QtGui.QColor(r, g, b, 155)
 
     def _get_rgb_by_label(self, label, skip_label_info=False):
+        if label == "AUTOLABEL_ADD":
+            return (144, 238, 144)
+        if label == "AUTOLABEL_REMOVE":
+            return (255, 182, 193)
         if label in self.label_info and not skip_label_info:
             return tuple(self.label_info[label]["color"])
         if self._config["shape_color"] == "auto":
@@ -3893,7 +3914,11 @@ class LabelingWidget(LabelDialog):
         shape = item.shape()
         shape.visible = item.checkState() == Qt.Checked
         self.canvas.set_shape_visible(shape, item.checkState() == Qt.Checked)
-        self.update_navigator_shapes()
+        if (
+            hasattr(self, "navigator_dialog")
+            and self.navigator_dialog.isVisible()
+        ):
+            self.update_navigator_shapes()
 
     def label_order_changed(self):
         self.set_dirty()
@@ -3975,7 +4000,8 @@ class LabelingWidget(LabelDialog):
             shape = self.canvas.set_last_label(text, flags, group_id)
             shape.group_id = group_id
             shape.description = description
-            shape.label = text
+            if text not in [AutoLabelingMode.ADD, AutoLabelingMode.REMOVE]:
+                shape.label = text
             shape.difficult = difficult
             shape.kie_linking = kie_linking
             self.add_label(shape)
@@ -4055,6 +4081,9 @@ class LabelingWidget(LabelDialog):
     def update_navigator_viewport(self):
         """Update the viewport rectangle in the navigator."""
         if not hasattr(self, "navigator_dialog") or not hasattr(self, "image"):
+            return
+
+        if not self.navigator_dialog.isVisible():
             return
 
         if self.image.isNull():
@@ -4381,7 +4410,11 @@ class LabelingWidget(LabelDialog):
 
         self.selected_polygon_stack.extend(shapes_to_hide)
         self.canvas.update()
-        self.update_navigator_shapes()
+        if (
+            hasattr(self, "navigator_dialog")
+            and self.navigator_dialog.isVisible()
+        ):
+            self.update_navigator_shapes()
 
     def show_hidden_polygons(self):
         if self.selected_polygon_stack:
@@ -4391,7 +4424,11 @@ class LabelingWidget(LabelDialog):
                 item.setCheckState(Qt.Checked)
                 shape_to_show.visible = True
                 self.canvas.update()
-                self.update_navigator_shapes()
+                if (
+                    hasattr(self, "navigator_dialog")
+                    and self.navigator_dialog.isVisible()
+                ):
+                    self.update_navigator_shapes()
             else:
                 logger.warning(
                     f"Shape associated with the hidden item was not found in label list, could not show."
@@ -4528,7 +4565,11 @@ class LabelingWidget(LabelDialog):
         self.image = image
         self.filename = filename
         self.navigator_dialog.set_image(QtGui.QPixmap.fromImage(image))
-        self.update_navigator_shapes()
+        if (
+            hasattr(self, "navigator_dialog")
+            and self.navigator_dialog.isVisible()
+        ):
+            self.update_navigator_shapes()
         if (
             hasattr(self, "_should_restore_navigator")
             and self._should_restore_navigator
@@ -5112,7 +5153,11 @@ class LabelingWidget(LabelDialog):
             item.setCheckState(Qt.Checked if value else Qt.Unchecked)
             self.label_list[index].shape().visible = True if value else False
         self._config["show_shapes"] = value
-        self.update_navigator_shapes()
+        if (
+            hasattr(self, "navigator_dialog")
+            and self.navigator_dialog.isVisible()
+        ):
+            self.update_navigator_shapes()
 
     def remove_selected_point(self):
         self.canvas.remove_selected_point()
@@ -5212,7 +5257,7 @@ class LabelingWidget(LabelDialog):
         self.toggle_actions(True)
         self.open_next_image()
 
-        if valid_files:
+        if valid_files and self._config.get("exif_scan_enabled", True):
             self.async_exif_scanner.start_scan(valid_files)
 
     def import_image_folder(self, dirpath, pattern=None, load=True):
@@ -5250,7 +5295,7 @@ class LabelingWidget(LabelDialog):
         self.toggle_actions(True)
         self.open_next_image(load=load)
 
-        if image_files:
+        if image_files and self._config.get("exif_scan_enabled", True):
             self.async_exif_scanner.start_scan(image_files)
 
     def toggle_auto_labeling_widget(self):
