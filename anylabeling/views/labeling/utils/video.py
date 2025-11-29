@@ -3,6 +3,7 @@ import os
 import os.path as osp
 import shutil
 import tempfile
+import time
 import subprocess
 
 from PyQt5.QtCore import Qt
@@ -43,6 +44,8 @@ class FrameExtractionDialog(QDialog):
         self.setWindowTitle(self.tr("Frame Extraction Settings"))
         self.setStyleSheet(get_msg_box_style())
         layout = QVBoxLayout()
+        layout.setSpacing(8)
+        layout.setContentsMargins(12, 8, 12, 12)
 
         # Interval input
         interval_layout = QHBoxLayout()
@@ -65,12 +68,23 @@ class FrameExtractionDialog(QDialog):
         prefix_layout = QHBoxLayout()
         prefix_label = QLabel(self.tr("Filename prefix:"))
         self.prefix_edit = QLineEdit()
+        base_style = ChatbotDialogStyle.get_settings_edit_style()
         self.prefix_edit.setStyleSheet(
-            ChatbotDialogStyle.get_settings_edit_style()
+            base_style
+            + """
+            QLineEdit {
+                padding-top: 6px;
+                padding-right: 8px;
+                padding-bottom: 0px;
+                padding-left: 8px;
+                min-height: 28px;
+            }
+            """
         )
         self.prefix_edit.setText("frame_")
         prefix_layout.addWidget(prefix_label)
         prefix_layout.addWidget(self.prefix_edit)
+        prefix_layout.setAlignment(Qt.AlignVCenter)
 
         # Sequence length input
         seq_layout = QHBoxLayout()
@@ -293,9 +307,14 @@ def extract_frames_from_video(self, input_file, out_dir):
                                 True  # Treat cancellation as failure for now
                             )
                             break
-                    progress_dialog.close()  # Close dialog once process finishes or is cancelled
 
                     if not ffmpeg_failed:
+                        progress_dialog.setLabelText(
+                            self.tr("Verifying extracted frames...")
+                        )
+                        QApplication.processEvents()
+                        time.sleep(0.5)
+
                         stdout, stderr = (
                             process.communicate()
                         )  # Get final output
@@ -305,6 +324,12 @@ def extract_frames_from_video(self, input_file, out_dir):
                             )
                             logger.error(f"ffmpeg stderr: {stderr}")
                             logger.error(f"ffmpeg stdout: {stdout}")
+                            progress_dialog.setLabelText(
+                                self.tr("ffmpeg failed. Check logs.")
+                            )
+                            QApplication.processEvents()
+                            time.sleep(0.3)
+                            progress_dialog.close()
                             popup = Popup(
                                 self.tr("ffmpeg failed. Check logs."),
                                 self,
@@ -328,10 +353,25 @@ def extract_frames_from_video(self, input_file, out_dir):
                                 logger.info(
                                     f"ffmpeg extracted approximately {saved_frame_count} frames to {out_dir}"
                                 )
+                                progress_dialog.setLabelText(
+                                    self.tr(
+                                        f"Completed! Extracted {saved_frame_count} frames."
+                                    )
+                                )
+                                QApplication.processEvents()
+                                time.sleep(0.3)
                             except Exception as count_e:
                                 logger.warning(
                                     f"Could not count extracted frames: {count_e}"
                                 )
+                                progress_dialog.setLabelText(
+                                    self.tr("Completed!")
+                                )
+                                QApplication.processEvents()
+                                time.sleep(0.3)
+
+                    if progress_dialog.isVisible():
+                        progress_dialog.close()
 
                 except FileNotFoundError:
                     logger.error(
