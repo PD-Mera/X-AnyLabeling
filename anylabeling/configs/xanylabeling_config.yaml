@@ -14,6 +14,7 @@ auto_highlight_shape: true
 auto_switch_to_edit_mode: true
 exif_scan_enabled: true
 show_groups: false
+show_masks: true
 show_texts: true
 show_labels: true
 show_scores: true
@@ -109,6 +110,8 @@ canvas:
   rotation:
     large_increment: 1.0  # degrees, corresponds to Z/V keys
     small_increment: 0.1  # degrees, corresponds to X/C keys
+  mask:
+    opacity: 80  # transparency value (0-255), 0 is fully transparent, 255 is fully opaque
 
 shortcuts:
   close: Ctrl+W
@@ -164,6 +167,7 @@ shortcuts:
   hide_selected_polygons: S
   show_hidden_polygons: W
   show_overview: Ctrl+G
+  show_masks: Ctrl+M
   show_texts: Ctrl+T
   show_labels: Ctrl+L
   show_linking: Ctrl+K
@@ -174,7 +178,7 @@ shortcuts:
   toggle_visibility_shapes: Ctrl+H
 
   auto_label: Ctrl+A
-  auto_run: Ctrl+M
+  auto_run: Ctrl+B
   loop_thru_labels: Ctrl+Shift+N
   loop_select_labels: Ctrl+Shift+C
 
