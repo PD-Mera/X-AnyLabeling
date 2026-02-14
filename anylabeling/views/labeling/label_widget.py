@@ -29,6 +29,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWhatsThis,
     QWidget,
+    QLineEdit,
 )
 
 from anylabeling.services.auto_labeling.types import AutoLabelingMode
@@ -295,6 +296,9 @@ class LabelingWidget(LabelDialog):
             wheel_rectangle_editing=self._config["canvas"][
                 "wheel_rectangle_editing"
             ],
+            auto_highlight_shape=self._config.get(
+                "auto_highlight_shape", False
+            ),
             attributes=self._config["canvas"].get("attributes", {}),
             rotation=self._config["canvas"].get("rotation", {}),
             mask=self._config["canvas"].get("mask", {}),
@@ -2481,7 +2485,7 @@ class LabelingWidget(LabelDialog):
             self.canvas.select_shapes([])
             self.select_toggle_button.setText(self.tr("Select"))
 
-    def reset_attribute(self, text):
+    def reset_attribute(self, text, shape):
         # Skip validation for auto-labeling special constants
         if text in [
             AutoLabelingMode.OBJECT,
@@ -2503,6 +2507,12 @@ class LabelingWidget(LabelDialog):
                 ).format(text, valid_labels, most_similar_label),
             )
             text = most_similar_label
+
+        new_attributes = {
+            attrs_key: attrs_val[0]
+            for attrs_key, attrs_val in self.attributes[text].items()
+        }
+        shape.attributes = new_attributes
         return text
 
     def current_item(self):
@@ -3066,7 +3076,7 @@ class LabelingWidget(LabelDialog):
 
         for shape in shapes:
             if self.attributes and text:
-                text = self.reset_attribute(text)
+                text = self.reset_attribute(text, shape)
 
             shape.label = text
             shape.flags = flags
@@ -3150,7 +3160,7 @@ class LabelingWidget(LabelDialog):
             )
             return
         if self.attributes and text:
-            text = self.reset_attribute(text)
+            text = self.reset_attribute(text, shape)
         shape.label = text
         shape.flags = flags
         shape.group_id = group_id
@@ -3186,6 +3196,10 @@ class LabelingWidget(LabelDialog):
         self.set_dirty()
         self.update_combo_box()
         self.update_gid_box()
+
+        # update top-right attributes panel
+        selected_idx = self.canvas.shapes.index(selected_shapes[0])
+        self.update_attributes(selected_idx)
 
     def file_search_changed(self):
         search_text = self.file_search.text()
@@ -3234,6 +3248,15 @@ class LabelingWidget(LabelDialog):
             if not self.canvas.shapes[i].attributes:
                 self.canvas.shapes[i].attributes = {}
             self.canvas.shapes[i].attributes[property] = option
+            self.save_attributes(self.canvas.shapes)
+            self.canvas.update()
+
+    def attribute_line_changed(self, i, property, line: QLineEdit):
+        line_text = line.text()
+        if i < len(self.canvas.shapes):
+            if not self.canvas.shapes[i].attributes:
+                self.canvas.shapes[i].attributes = {}
+            self.canvas.shapes[i].attributes[property] = line_text
             self.save_attributes(self.canvas.shapes)
 
     def update_selected_options(self, selected_options):
@@ -3509,6 +3532,40 @@ class LabelingWidget(LabelDialog):
                 self.grid_layout.addWidget(
                     radio_container, row_counter, 0, 1, 2
                 )
+                row_counter += 1
+            elif widget_type == "group_id":
+                property_combo = QComboBox()
+                options = [""] + sorted(
+                    {
+                        str(obj.group_id)
+                        for obj in self.canvas.shapes
+                        if obj.group_id is not None
+                    }
+                )
+                property_combo.addItems(options)
+                if current_value:
+                    index = property_combo.findText(current_value)
+                    if index >= 0:
+                        property_combo.setCurrentIndex(index)
+                property_combo.currentIndexChanged.connect(
+                    lambda _, prop=property, combo=property_combo, shape_idx=shape_index: self.attribute_selection_changed(
+                        shape_idx, prop, combo
+                    )
+                )
+                self.grid_layout.addWidget(
+                    property_combo, row_counter, 0, 1, 2
+                )
+                row_counter += 1
+            elif widget_type == "lineedit":
+                property_line = QLineEdit()
+                if current_value:
+                    property_line.setText(current_value)
+                property_line.textChanged.connect(
+                    lambda _, prop=property, line=property_line, shape_idx=shape_index: self.attribute_line_changed(
+                        shape_idx, prop, line
+                    )
+                )
+                self.grid_layout.addWidget(property_line, row_counter, 0, 1, 2)
                 row_counter += 1
             else:
                 property_combo = QComboBox()
@@ -4064,7 +4121,7 @@ class LabelingWidget(LabelDialog):
             return
 
         if self.attributes and text:
-            text = self.reset_attribute(text)
+            text = self.reset_attribute(text, shape)
 
         if text:
             self.label_list.clearSelection()
@@ -5652,7 +5709,7 @@ class LabelingWidget(LabelDialog):
             return
 
         if self.attributes and text:
-            text = self.reset_attribute(text)
+            text = self.reset_attribute(text, shape)
 
         # Add to label history
         self.label_dialog.add_label_history(text)
