@@ -5142,7 +5142,8 @@ class LabelingWidget(LabelDialog):
         self.update_thumbnail_pixmap()
 
     def paint_canvas(self):
-        assert not self.image.isNull(), "cannot paint null image"
+        if self.image.isNull():
+            return
         self.canvas.scale = 0.01 * self.zoom_widget.value()
         self.canvas.adjustSize()
         self.canvas.update()
