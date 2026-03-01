@@ -180,4 +180,4 @@ pnnx*
 *.rknn
 
 # calibration image
-calibration_*.npy
+calibration_*.npy!packaging/pyinstaller/specs/*.spec
