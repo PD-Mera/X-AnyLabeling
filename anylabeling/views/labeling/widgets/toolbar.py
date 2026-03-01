@@ -1,6 +1,6 @@
 """Defines toolbar for anylabeling, including"""
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 from anylabeling.views.labeling.utils.theme import get_mode, get_theme
 
 
@@ -13,7 +13,9 @@ class ToolBar(QtWidgets.QToolBar):
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setContentsMargins(0, 0, 0, 0)
-        self.setWindowFlags(self.windowFlags() | QtCore.Qt.FramelessWindowHint)
+        self.setWindowFlags(
+            self.windowFlags() | QtCore.Qt.WindowType.FramelessWindowHint
+        )
 
         self._is_dark = get_mode() == "dark"
         t = get_theme()
@@ -26,8 +28,7 @@ class ToolBar(QtWidgets.QToolBar):
                 margin: 4px 6px;
             }}
             """
-        self.setStyleSheet(
-            f"""
+        self.setStyleSheet(f"""
             QToolBar {{
                 background: {t["background"]};
                 padding: 0px;
@@ -35,8 +36,7 @@ class ToolBar(QtWidgets.QToolBar):
                 border-radius: 5px;
             }}
             {separator_qss}
-            """
-        )
+            """)
         if self._is_dark:
             layout.setContentsMargins(0, 4, 0, 4)
 
@@ -63,6 +63,8 @@ class ToolBar(QtWidgets.QToolBar):
             if isinstance(
                 self.layout().itemAt(i).widget(), QtWidgets.QToolButton
             ):
-                self.layout().itemAt(i).setAlignment(QtCore.Qt.AlignCenter)
+                self.layout().itemAt(i).setAlignment(
+                    QtCore.Qt.AlignmentFlag.AlignCenter
+                )
 
         return True

@@ -74,27 +74,19 @@
 </video>
 </details>
 
-## 🥳 新功能
+<details>
+<summary><strong>OCR识别</strong></summary>
 
 <video src="https://github.com/user-attachments/assets/493183fd-6cbe-45fb-9808-ec2b0af7a0f9" width="100%" controls>
 </video>
+</details>
+
+## 🥳 新功能
 
 <video src="https://github.com/user-attachments/assets/4a676ebf-d2ae-4327-b078-8e63a5323793" width="100%" controls>
 </video>
 
-- 新增**外观设置**，支持 System/Light/Dark 三种主题 [[教程](./docs/zh_cn/user_guide.md#78-外观设置)]
-- 新增**画笔多边形**绘制模式（`Ctrl+N`）：移动鼠标即可自动沿轨迹添加多边形顶点，点间距可通过 `Edit > Set Brush Point Distance` 调整
-- 新增双击画布对象编辑标签功能
-- 新增 **四边形**标注形状，支持键盘快捷键 `T` 进行高效的四点对象标注
-- 新增 [PP-DocLayoutV3](./examples/optical_character_recognition/document_layout_analysis/README.md)，支持多点定位（四边形/多边形）和逻辑阅读顺序预测
-- 新增 [PaddleOCR-VL-1.5](./examples/optical_character_recognition/multi_task/README.md)，支持 OCR、表格识别、公式识别、图表识别、文本检测与识别及印章识别
-- 新增[YOLO26](https://github.com/ultralytics/ultralytics)系列模型，支持目标检测、实例分割、姿态估计和旋转检测
-- 新增对比视图功能，支持分屏图像对比，适用于红外/可见光融合、掩码预览、图像超分等场景 [[教程](./docs/zh_cn/user_guide.md#36-对比视图)]
-- 新增[YOLO26](https://github.com/ultralytics/ultralytics)目标检测模型
-- 新增多模态大型语言模型[Rex-Omni](https://github.com/IDEA-Research/Rex-Omni)，支持目标检测、关键点、指代、OCR和视觉提示等多种视觉任务 [[教程](./examples/vision_language/rexomni/README.md)]
-- 新增强大的文件搜索功能，支持文本搜索、正则表达式搜索和属性搜索 [[教程](./docs/zh_cn/user_guide.md#25-搜索图片)]
-- 新增多边形、矩形、旋转框和圆形对象的半透明掩码渲染功能，支持快捷键切换显示（`Ctrl+M`）
-- 新增基于 Segment Anything 3 的一键文本和视觉提示视频检测及分割跟踪 [[教程](./examples/interactive_video_object_segmentation/sam3/README.md)]
+- `2026-03-01`: 完成 PyQt5 到 PyQt6 的升级重构（Beta 版本），并同步修复与优化若干功能细节。
 - 更多详情，请参考[更新日志](./CHANGELOG.md)
 
 ## 简介

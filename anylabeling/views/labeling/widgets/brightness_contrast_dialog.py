@@ -2,8 +2,8 @@
 
 import PIL.Image
 import PIL.ImageEnhance
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
+from PyQt6 import QtWidgets
+from PyQt6.QtCore import Qt
 
 from ..utils.image import pil_to_qimage
 from ..utils.style import (
@@ -22,7 +22,7 @@ class BrightnessContrastDialog(QtWidgets.QDialog):
         self.setWindowTitle(self.tr("Brightness/Contrast"))
         self.setFixedSize(400, 160)
         self.setWindowFlags(
-            self.windowFlags() & ~Qt.WindowContextHelpButtonHint
+            self.windowFlags() & ~Qt.WindowType.WindowContextHelpButtonHint
         )
 
         self.setStyleSheet(get_dialog_style())
@@ -38,13 +38,17 @@ class BrightnessContrastDialog(QtWidgets.QDialog):
             f"{self.slider_brightness.value() / 50:.2f}"
         )
         self.brightness_label.setFixedWidth(40)
-        self.brightness_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.brightness_label.setAlignment(
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+        )
 
         self.contrast_label = QtWidgets.QLabel(
             f"{self.slider_contrast.value() / 50:.2f}"
         )
         self.contrast_label.setFixedWidth(40)
-        self.contrast_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.contrast_label.setAlignment(
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+        )
 
         self.slider_brightness.valueChanged.connect(
             self.update_brightness_label
@@ -88,9 +92,9 @@ class BrightnessContrastDialog(QtWidgets.QDialog):
         btn_row.addWidget(self.reset_button)
         btn_row.addWidget(self.confirm_button)
 
-        grid.addWidget(brightness_name, 0, 0, Qt.AlignVCenter)
+        grid.addWidget(brightness_name, 0, 0, Qt.AlignmentFlag.AlignVCenter)
         grid.addLayout(b_row, 0, 1)
-        grid.addWidget(contrast_name, 1, 0, Qt.AlignVCenter)
+        grid.addWidget(contrast_name, 1, 0, Qt.AlignmentFlag.AlignVCenter)
         grid.addLayout(c_row, 1, 1)
         grid.addLayout(btn_row, 2, 1)
 
@@ -104,7 +108,7 @@ class BrightnessContrastDialog(QtWidgets.QDialog):
     def move_to_center(self):
         """Move dialog to center of the screen"""
         qr = self.frameGeometry()
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        cp = self.screen().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
@@ -149,7 +153,7 @@ class BrightnessContrastDialog(QtWidgets.QDialog):
 
     def _create_slider(self):
         """Create brightness/contrast slider"""
-        slider = QtWidgets.QSlider(Qt.Horizontal)
+        slider = QtWidgets.QSlider(Qt.Orientation.Horizontal)
         slider.setRange(0, 150)
         slider.setValue(50)
         slider.setTracking(True)

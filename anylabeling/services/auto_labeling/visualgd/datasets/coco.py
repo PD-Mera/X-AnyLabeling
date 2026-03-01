@@ -4,6 +4,7 @@ COCO dataset which returns image_id for evaluation.
 
 Mostly copy-paste from https://github.com/pytorch/vision/blob/13b35ff/references/detection/coco_utils.py
 """
+
 if __name__ == "__main__":
     # for debug only
     import os, sys

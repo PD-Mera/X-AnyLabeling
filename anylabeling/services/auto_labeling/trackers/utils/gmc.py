@@ -168,7 +168,7 @@ class GMC:
         # Run the ECC algorithm. The results are stored in warp_matrix.
         # (cc, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria)
         try:
-            (_, H) = cv2.findTransformECC(
+            _, H = cv2.findTransformECC(
                 self.prevFrame,
                 frame,
                 H,

@@ -75,26 +75,19 @@
 </video>
 </details>
 
-## 🥳 What's New
+<details>
+<summary><strong>OCR</strong></summary>
 
 <video src="https://github.com/user-attachments/assets/493183fd-6cbe-45fb-9808-ec2b0af7a0f9" width="100%" controls>
 </video>
+</details>
+
+## 🥳 What's New
 
 <video src="https://github.com/user-attachments/assets/4a676ebf-d2ae-4327-b078-8e63a5323793" width="100%" controls>
 </video>
 
-- Added **Appearance Settings** with System/Light/Dark theme support [[docs](./docs/en/user_guide.md#78-appearance-settings)]
-- Added **Brush Polygon** drawing mode (`Ctrl+N`): move the mouse to automatically trace polygon vertices, with configurable point distance via `Edit > Set Brush Point Distance`
-- Added double-click on canvas shape to edit label in Edit Mode
-- Support for **Quadrilateral** annotation shapes with keyboard shortcut `T` for efficient four-point object labeling
-- Added [PP-DocLayoutV3](./examples/optical_character_recognition/document_layout_analysis/README.md), supporting multi-point localization (quadrilaterals/polygons) and logical reading order prediction
-- Added [PaddleOCR-VL-1.5](./examples/optical_character_recognition/multi_task/README.md), supporting OCR, table recognition, formula recognition, chart recognition, text spotting, and seal recognition
-- Added [YOLO26](https://github.com/ultralytics/ultralytics) series models for object detection, instance segmentation, pose estimation, and rotated object detection
-- Added Compare View feature for split-screen image comparison (ideal for infrared/visible fusion, mask preview, and super-resolution) [[docs](./docs/en/user_guide.md#36-compare-view)]
-- Added multimodal large language model [Rex-Omni](https://github.com/IDEA-Research/Rex-Omni) with support for grounding, keypoints, referring pointing, OCR, and visual prompting tasks [[docs](./examples/vision_language/rexomni/README.md)]
-- Added powerful file search feature upporting text search, regular expression search, and attribute-based filtering [[docs](./docs/en/user_guide.md#25-searching-images)]
-- Added semi-transparent mask rendering for polygon, rectangle, rotation, and circle shapes with toggle support (`Ctrl+M`)
-- Added one-click text and visual prompt video detection and segmentation tracking based on Segment Anything 3 [[docs](./examples/interactive_video_object_segmentation/sam3/README.md)]
+- `2026-03-01`: Completed the PyQt5-to-PyQt6 upgrade refactor (Beta release), along with additional feature fixes and optimizations.
 - For more details, please refer to the [CHANGELOG](./CHANGELOG.md)
 
 ## X-AnyLabeling
@@ -111,7 +104,7 @@ Also, we highly recommend trying out [X-AnyLabeling-Server](https://github.com/C
 
 - Supports remote inference service.
 - Processes both `images` and `videos`.
-- Accelerates inference with `GPU` support.
+- Accelerates inference with `GPU` and `FFmpeg` support.
 - Allows custom models and secondary development.
 - Supports one-click inference for all images in the current task.
 - Supports import/export for formats like COCO, VOC, YOLO, DOTA, MOT, MASK, PPOCR, MMGD, VLM-R1.

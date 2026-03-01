@@ -4,8 +4,8 @@ import os.path as osp
 from math import sqrt
 
 import numpy as np
-from PyQt5.QtCore import Qt
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import Qt
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 from anylabeling.views.labeling.logger import logger
 
@@ -70,7 +70,7 @@ def new_action(
     auto_trigger=False,
 ):
     """Create a new action and assign callbacks, shortcuts, etc."""
-    action = QtWidgets.QAction(text, parent)
+    action = QtGui.QAction(text, parent)
     if icon is not None:
         action.setIconText(text.replace(" ", "\n"))
         action.setIcon(new_icon(icon))
@@ -91,6 +91,21 @@ def new_action(
     if auto_trigger:
         action.triggered.emit(checked)
     return action
+
+
+class StayOpenMenuFilter(QtCore.QObject):
+    """Event filter that keeps a QMenu open when a checkable action is clicked."""
+
+    def eventFilter(self, obj, event):
+        if (
+            event.type() == QtCore.QEvent.Type.MouseButtonRelease
+            and isinstance(obj, QtWidgets.QMenu)
+        ):
+            action = obj.activeAction()
+            if action and action.isCheckable():
+                action.trigger()
+                return True
+        return super().eventFilter(obj, event)
 
 
 def add_actions(widget, actions):
@@ -175,13 +190,13 @@ def on_thumbnail_click(widget):
             scaled_pixmap = widget.thumbnail_pixmap.scaled(
                 display_width,
                 display_height,
-                Qt.KeepAspectRatio,
-                Qt.SmoothTransformation,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
             )
 
             label.setPixmap(scaled_pixmap)
             label.setFixedSize(display_width, display_height)
-            label.setAlignment(Qt.AlignCenter)
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             h_layout.addStretch(1)
             h_layout.addWidget(label)
@@ -204,6 +219,6 @@ def on_thumbnail_click(widget):
                 (screen_size.width() - total_width) // 2,
                 (screen_size.height() - total_height) // 2,
             )
-            dialog.exec_()
+            dialog.exec()
 
     return _on_click

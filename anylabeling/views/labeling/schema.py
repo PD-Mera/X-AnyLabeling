@@ -2,7 +2,6 @@ from typing import Any, Dict, List, Optional
 
 from anylabeling.app_info import __version__
 
-
 XLABEL_BASIC_FIELDS = [
     "version",
     "flags",

@@ -7,7 +7,6 @@ import random
 import numpy as np
 import onnxruntime as ort
 
-
 """
 The ONNX Export of the InternImage Model
 Written by Wei Wang (CVHub)

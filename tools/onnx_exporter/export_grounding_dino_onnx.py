@@ -9,7 +9,6 @@ import onnxruntime as ort
 from typing import Dict
 from tokenizers import Tokenizer
 
-
 """
 The ONNX Export of the Grounding DINO
 Written by Wei Wang (CVHub)

@@ -1,3 +1,15 @@
+class DownloadCancelledError(Exception):
+    """Raised when a model download is cancelled by the user."""
+
+    pass
+
+
+class DownloadCancelledError(Exception):
+    """Raised when a model download is cancelled by the user."""
+
+    pass
+
+
 class AutoLabelingResult:
     def __init__(self, shapes, replace=True, description=""):
         """Initialize AutoLabelingResult

@@ -1,12 +1,18 @@
-from PyQt5.QtCore import (
+from PyQt6.QtCore import (
     QEasingCurve,
     QEvent,
     QPropertyAnimation,
     QTimer,
     Qt,
 )
-from PyQt5.QtGui import QIcon, QPixmap, QTextCursor, QDesktopServices
-from PyQt5.QtWidgets import (
+from PyQt6.QtGui import (
+    QIcon,
+    QPixmap,
+    QTextCursor,
+    QTextOption,
+    QDesktopServices,
+)
+from PyQt6.QtWidgets import (
     QApplication,
     QFrame,
     QHBoxLayout,
@@ -21,9 +27,15 @@ from PyQt5.QtWidgets import (
 )
 
 try:
-    from PyQt5.QtWebEngineWidgets import QWebEngineView
+    from PyQt6.QtWebEngineWidgets import QWebEngineView
+
+    _WEBENGINE_AVAILABLE = True
 except ImportError:
-    QWebEngineView = None
+    _WEBENGINE_AVAILABLE = False
+
+    class QWebEngineView:
+        pass
+
 
 from anylabeling.views.labeling.chatbot.config import *
 from anylabeling.views.labeling.chatbot.render import *
@@ -47,7 +59,7 @@ class ChatMessage(QFrame):
         self.edit_area_min_height = 80
 
         # Enable context menu policy for the frame
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
 
         # Create message container with appropriate styling
@@ -92,9 +104,14 @@ class ChatMessage(QFrame):
             icon_container_layout.setSpacing(0)
 
             role_label = QLabel()
+            role_label.setFixedSize(*ICON_SIZE_SMALL)
             icon_pixmap = QPixmap(new_icon_path(self.provider))
+            if icon_pixmap.isNull():
+                icon_pixmap = QPixmap(new_icon_path("brain"))
             scaled_icon = icon_pixmap.scaled(
-                *ICON_SIZE_SMALL, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                *ICON_SIZE_SMALL,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
             )
             role_label.setPixmap(scaled_icon)
             role_label.setStyleSheet(ChatMessageStyle.get_role_label_style())
@@ -159,12 +176,14 @@ class ChatMessage(QFrame):
 
         # Use a more appropriate size policy to avoid excessive vertical space
         content_label.setSizePolicy(
-            QSizePolicy.Expanding, QSizePolicy.Preferred
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
         )
 
         # Set alignment and minimum height to avoid excessive height
         if self.role == "user":
-            content_label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+            content_label.setAlignment(
+                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
+            )
 
         content_label.setMinimumHeight(10)
         self.content_label = content_label
@@ -212,9 +231,9 @@ class ChatMessage(QFrame):
         self.edit_area = QTextEdit()
         self.edit_area.setPlainText(content)
         self.edit_area.setStyleSheet(ChatMessageStyle.get_edit_area_style())
-        self.edit_area.setFrameShape(QFrame.NoFrame)
-        self.edit_area.setFrameShadow(QFrame.Plain)
-        self.edit_area.setWordWrapMode(True)
+        self.edit_area.setFrameShape(QFrame.Shape.NoFrame)
+        self.edit_area.setFrameShadow(QFrame.Shadow.Plain)
+        self.edit_area.setWordWrapMode(QTextOption.WrapMode.WordWrap)
         self.edit_area.setMinimumHeight(self.edit_area_min_height)
         self.edit_area.setVisible(False)
         bubble_layout.addWidget(self.edit_area)
@@ -256,7 +275,9 @@ class ChatMessage(QFrame):
         self.edit_buttons_widget.setVisible(False)
         bubble_layout.addWidget(self.edit_buttons_widget)
 
-        self.bubble.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.bubble.setSizePolicy(
+            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred
+        )
 
         if parent:
             parent_width = parent.width()
@@ -294,18 +315,12 @@ class ChatMessage(QFrame):
         self.animation.setDuration(int(ANIMATION_DURATION[:-2]))
         self.animation.setStartValue(0)
 
-        content_height = self.content_label.sizeHint().height()
-        bubble_height = content_height + (
-            bubble_layout.contentsMargins().top()
-            + bubble_layout.contentsMargins().bottom()
-            + bubble_layout.spacing()
-            + 30
-        )
-
         # Set end value and easing curve
-        anim_end_height = max(self.animation_min_height, bubble_height)
+        anim_end_height = max(
+            self.animation_min_height, self.bubble.sizeHint().height()
+        )
         self.animation.setEndValue(anim_end_height)
-        self.animation.setEasingCurve(QEasingCurve.OutCubic)
+        self.animation.setEasingCurve(QEasingCurve.Type.OutCubic)
 
         # After animation, adjust height to a reasonable value
         self.animation.finished.connect(self.adjust_height_after_animation)
@@ -332,45 +347,48 @@ class ChatMessage(QFrame):
 
             # Set text format based on content
             if "\u200b" in processed_content or self.is_error:
-                content_label.setTextFormat(Qt.RichText)
+                content_label.setTextFormat(Qt.TextFormat.RichText)
             else:
-                content_label.setTextFormat(Qt.PlainText)
+                content_label.setTextFormat(Qt.TextFormat.PlainText)
 
             content_label.setStyleSheet(
                 ChatMessageStyle.get_content_label_style(self.is_error)
             )
             content_label.setTextInteractionFlags(
-                Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard
+                Qt.TextInteractionFlag.TextSelectableByMouse
+                | Qt.TextInteractionFlag.TextSelectableByKeyboard
             )
             content_label.setSizePolicy(
-                QSizePolicy.Expanding, QSizePolicy.Preferred
+                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
             )
 
             # Ensure consistent font display
             default_font = content_label.font()
             content_label.setFont(default_font)
 
-            content_label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+            content_label.setAlignment(
+                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
+            )
             content_label.setMinimumHeight(10)
 
             return content_label
 
-        # For assistant messages, use QWebEngineView to render markdown
         else:
-            web_view = QWebEngineView()
-            web_view.setMinimumWidth(200)
-            web_view.setMinimumHeight(10)
-            web_view.setSizePolicy(
-                QSizePolicy.Expanding, QSizePolicy.MinimumExpanding
+            content_label = QLabel()
+            content_label.setTextFormat(Qt.TextFormat.RichText)
+            content_label.setText(
+                convert_markdown_to_qt_html(processed_content)
             )
-            web_view.loadFinished.connect(
-                lambda ok: self.adjust_height_after_animation() if ok else None
+            content_label.setWordWrap(True)
+            content_label.setOpenExternalLinks(True)
+            content_label.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextBrowserInteraction
             )
-            self.original_content = processed_content
-            web_view.page().urlChanged.connect(self.handle_external_link)
-            web_view.setHtml(convert_markdown_to_html(processed_content))
-            web_view.installEventFilter(self)
-            return web_view
+            content_label.setSizePolicy(
+                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+            )
+            content_label.setMinimumHeight(10)
+            return content_label
 
     def set_action_buttons_enabled(self, enabled):
         """Enable or disable all action buttons"""
@@ -434,7 +452,10 @@ class ChatMessage(QFrame):
 
     def eventFilter(self, obj, event):
         """Filter events to forward wheel events from QWebEngineView to scroll area"""
-        if isinstance(obj, QWebEngineView) and event.type() == QEvent.Wheel:
+        if (
+            isinstance(obj, QWebEngineView)
+            and event.type() == QEvent.Type.Wheel
+        ):
             parent = self.parent()
             while parent:
                 if isinstance(parent, QScrollArea):
@@ -477,54 +498,45 @@ class ChatMessage(QFrame):
                 )
                 return
 
-            content_height = self.content_label.heightForWidth(
-                self.content_label.width()
-            )
-            # If the height cannot be obtained correctly, use sizeHint
-            if content_height <= 0:
-                content_height = self.content_label.sizeHint().height()
+            bubble_height = self.bubble.sizeHint().height()
+            if bubble_height <= 0:
+                content_height = self.content_label.heightForWidth(
+                    self.content_label.width()
+                )
+                if content_height <= 0:
+                    content_height = self.content_label.sizeHint().height()
+                bubble_height = content_height + self.animation_min_height
 
-            # Add extra space for the header, padding and buttons (even when not visible)
-            total_height = (
-                content_height
-                + self.animation_min_height
-                + self.edit_buttons_widget.sizeHint().height()
-            )
-
-            # Set a reasonable maximum height with some buffer
-            self.setMaximumHeight(int(total_height))
-
-            # Force update
+            self.setMaximumHeight(bubble_height)
             self.updateGeometry()
-            QApplication.processEvents()
         finally:
             self.resize_in_progress = False
 
     def apply_webview_height(self, height):
         """(Callback func) Apply the height from JavaScript"""
-        if (
-            not isinstance(self.content_label, QWebEngineView)
-            or self.resize_in_progress
-        ):
-            return
-
         try:
+            if (
+                not isinstance(self.content_label, QWebEngineView)
+                or self.resize_in_progress
+            ):
+                return
+
             self.resize_in_progress = True
-
-            # Ensure height is a valid value
-            if height and height > 0:
-                button_space = self.edit_buttons_widget.sizeHint().height()
-                total_height = (
-                    height + self.animation_min_height + button_space
-                )
-                self.content_label.setFixedHeight(height)
-                self.setMaximumHeight(int(total_height))
-
-                self.updateGeometry()
-                self.bubble.updateGeometry()
-                QApplication.processEvents()
-        finally:
-            self.resize_in_progress = False
+            try:
+                if height and height > 0:
+                    self.content_label.setFixedHeight(height)
+                    bubble_height = self.bubble.sizeHint().height()
+                    self.setMaximumHeight(
+                        bubble_height
+                        if bubble_height > 0
+                        else height + self.animation_min_height
+                    )
+                    self.updateGeometry()
+                    self.bubble.updateGeometry()
+            finally:
+                self.resize_in_progress = False
+        except RuntimeError:
+            pass
 
     def enter_edit_mode(self):
         """Enter edit mode for chat messages"""
@@ -542,7 +554,7 @@ class ChatMessage(QFrame):
         self.edit_area.setVisible(True)
         self.edit_area.setPlainText(self.content)
         self.edit_area.setFocus()
-        self.edit_area.moveCursor(QTextCursor.End)
+        self.edit_area.moveCursor(QTextCursor.MoveOperation.End)
         self.edit_buttons_widget.setVisible(True)
 
         # Hide the Resend button for assistant messages
@@ -562,11 +574,11 @@ class ChatMessage(QFrame):
         # Only proceed if content is not empty
         if edited_content:
             self.content = edited_content
-            if isinstance(self.content_label, QLabel):
+            if self.role == "user":
                 self.content_label.setText(edited_content)
             else:
-                self.content_label.setHtml(
-                    convert_markdown_to_html(edited_content)
+                self.content_label.setText(
+                    convert_markdown_to_qt_html(edited_content)
                 )
 
             dialog = self.window()
@@ -691,13 +703,15 @@ class ChatMessage(QFrame):
         confirm_dialog.setText(
             self.tr("Are you sure to delete this message forever?")
         )
-        confirm_dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        confirm_dialog.setDefaultButton(QMessageBox.No)
-        confirm_dialog.setIcon(QMessageBox.Warning)
+        confirm_dialog.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        confirm_dialog.setDefaultButton(QMessageBox.StandardButton.No)
+        confirm_dialog.setIcon(QMessageBox.Icon.Warning)
 
         # Show dialog and handle response
-        response = confirm_dialog.exec_()
-        if response == QMessageBox.Yes:
+        response = confirm_dialog.exec()
+        if response == QMessageBox.StandardButton.Yes:
             self.delete_message()
 
     def delete_message(self):
@@ -793,7 +807,7 @@ class ChatMessage(QFrame):
         delete_action = context_menu.addAction(self.tr("Delete message"))
         delete_action.triggered.connect(self.confirm_delete_message)
 
-        context_menu.exec_(self.mapToGlobal(position))
+        context_menu.exec(self.mapToGlobal(position))
 
     def handle_external_link(self, url):
         """Handle the external url"""
@@ -801,8 +815,4 @@ class ChatMessage(QFrame):
         if url_string.startswith("http://") or url_string.startswith(
             "https://"
         ):
-            self.sender().parent().stop()
             QDesktopServices.openUrl(url)
-            self.sender().parent().setHtml(
-                convert_markdown_to_html(self.original_content)
-            )

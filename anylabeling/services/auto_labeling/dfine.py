@@ -2,8 +2,8 @@ import os
 import numpy as np
 from PIL import Image
 
-from PyQt5 import QtCore
-from PyQt5.QtCore import QCoreApplication
+from PyQt6 import QtCore
+from PyQt6.QtCore import QCoreApplication
 
 from anylabeling.app_info import __preferred_device__
 from anylabeling.views.labeling.shape import Shape
@@ -30,6 +30,7 @@ class DFINE(Model):
             "input_conf",
             "edit_conf",
             "toggle_preserve_existing_annotations",
+            "button_classes_filter",
         ]
         output_modes = {
             "rectangle": QCoreApplication.translate("Model", "Rectangle"),
@@ -52,6 +53,7 @@ class DFINE(Model):
         self.classes = self.config["classes"]
         self.input_shape = (640, 640)
         self.conf_thres = self.config["conf_threshold"]
+        self.filter_classes = None
         self.replace = True
 
     def set_auto_labeling_conf(self, value):
@@ -62,6 +64,13 @@ class DFINE(Model):
     def set_auto_labeling_preserve_existing_annotations_state(self, state):
         """Toggle the preservation of existing annotations based on the checkbox state."""
         self.replace = not state
+
+    def set_auto_labeling_filter_classes(self, class_names):
+        """Set filter classes by name."""
+        if not class_names or len(class_names) == len(self.classes):
+            self.filter_classes = None
+        else:
+            self.filter_classes = class_names
 
     def preprocess(self, input_image, interpolation=Image.BILINEAR):
         """
@@ -131,6 +140,8 @@ class DFINE(Model):
                     label = self.classes[label_idx]
                 else:
                     label = str(label_idx)
+                if self.filter_classes and label not in self.filter_classes:
+                    continue
 
                 # Get box coordinates and adjust for padding and resize
                 box = boxes[0][i]

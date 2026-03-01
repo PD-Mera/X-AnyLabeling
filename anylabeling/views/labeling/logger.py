@@ -5,7 +5,6 @@ from typing import Callable, Dict
 
 import termcolor
 
-
 COLORS: Dict[str, str] = {
     "WARNING": "yellow",
     "INFO": "white",

@@ -10,7 +10,6 @@ from functools import lru_cache
 from ..engines import OnnxBaseModel
 from anylabeling.views.labeling.logger import logger
 
-
 _MODEL_INFO = {
     "ViT-B-16": {
         "struct": "ViT-B-16@RoBERTa-wwm-ext-base-chinese",

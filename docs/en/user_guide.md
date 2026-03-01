@@ -52,7 +52,7 @@ This guide provides comprehensive instructions for using X-AnyLabeling, covering
       * [7.5 Hover Auto-Highlight](#75-hover-auto-highlight)
       * [7.6 Shape Appearance](#76-shape-appearance)
       * [7.7 Model Download Source](#77-model-download-source)
-      * [7.8 Appearance Settings](#78-appearance-settings)
+      * [7.8 Theme Settings](#78-theme-settings)
    * [8. Supported Tasks](#8-supported-tasks)
       * [8.1 Image Classification](#81-image-classification)
       * [8.2 Object Detection](#82-object-detection)
@@ -195,8 +195,8 @@ X-AnyLabeling supports creating the following types of shapes:
 - **Polygon** (`P`): Click along the object's boundary to place vertices. Click the starting point or double-click the last point to close the polygon. Requires at least 3 points. A brush mode (`Ctrl+N`) is also available: once activated, click to place the first point, then move the mouse to automatically trace polygon vertices along the cursor path. Move near the starting point to auto-close. The point distance can be adjusted via `Edit > Set Brush Point Distance`.
 - **Quadrilateral** (`T`): Click to place the first corner, then click the remaining three corners in order to complete the quadrilateral.
 - **Point**: Click to place a point.
-- **Line**: Click to set the start point, move the cursor, and click again to set the end point.
-- **Line Strip**: Click to place the first point, then click to add subsequent points for connected line segments. Double-click to finish.
+- **Line**: Click to set the start point, move the cursor, and click again to set the end point. Hold `Shift` while drawing to snap the segment horizontally or vertically.
+- **Line Strip**: Click to place the first point, then click to add subsequent points for connected line segments. Hold `Shift` while drawing each segment to snap it horizontally or vertically. Double-click to finish.
 - **Circle**: Click to set the center, move the cursor to define the radius, and click again.
 
 You can create shapes using the tools in the left toolbar, the right-click context menu, or keyboard shortcuts.
@@ -934,9 +934,9 @@ shape:
         *   If `language: zh_CN` (Chinese), it defaults to `modelscope`.
         *   Otherwise (e.g., `language: en_US`), it defaults to `github`.
 
-### 7.8 Appearance Settings
+### 7.8 Theme Settings
 
-X-AnyLabeling supports three appearance modes, accessible from the menu bar at **View → Appearance**:
+X-AnyLabeling supports three theme modes, accessible from the top-level **Theme** menu:
 
 | Option | Description |
 |--------|-------------|
@@ -944,7 +944,7 @@ X-AnyLabeling supports three appearance modes, accessible from the menu bar at *
 | **Light** | Always uses the light theme. |
 | **Dark** | Always uses the dark theme. |
 
-After selecting an option, a confirmation dialog appears. Click **OK** to save the setting and immediately restart the application for the theme to take full effect; click **Cancel** to discard the change.
+After selecting an option, a confirmation dialog appears. Click **OK** to save the setting. The application does not restart automatically; a prompt will remind you to restart for the theme to take effect. Click **Cancel** to discard the change.
 
 You can also set the theme directly in `~/.xanylabelingrc`:
 

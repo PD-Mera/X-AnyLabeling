@@ -19,9 +19,11 @@ X-AnyLabeling 提供了多种安装方法，您可以通过 `pip` 直接安装�
 
 #### 1.1.1 Miniconda
 
+如果您已经在使用 Miniconda，可按以下步骤操作：
+
 **步骤 0.** 从 [官方网站](https://docs.anaconda.com/miniconda/) 下载并安装 Miniconda。
 
-**步骤 1.** 创建一个 Python 3.10 ~ 3.12 版本的 conda 环境，并激活它。
+**步骤 1.** 创建一个 Python 3.10 ~ 3.13 版本的 conda 环境（推荐 Python 3.12），并激活它。
 
 > [!NOTE]
 > 其他 Python 版本需要自行验证兼容性。
@@ -42,7 +44,7 @@ conda activate x-anylabeling-cu12
 
 #### 1.1.2 Venv
 
-除了 Miniconda，您也可以使用 Python 内置的 `venv` 模块创建虚拟环境。以下是不同配置下的环境创建和激活命令：
+也可以使用 Python 内置的 `venv` 模块创建虚拟环境：
 
 ```bash
 # CPU [Windows/Linux/macOS]
@@ -61,27 +63,57 @@ source venv-cu11/bin/activate  # Linux
 # venv-cu11\Scripts\activate    # Windows
 ```
 
-> [!TIP]
-> 对于追求更快的依赖安装速度和更现代化的 Python 包管理体验，强烈推荐使用 [uv](https://github.com/astral-sh/uv) 作为包管理器。uv 提供了显著更快的安装速度和更好的依赖解析能力。
+#### 1.1.3 uv
+
+**步骤 0.** 安装 uv：
+
+```bash
+# Linux / macOS / WSL2
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows（PowerShell）
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+**步骤 1.** 创建虚拟环境（uv 会自动下载所需 Python 版本）并激活：
+
+```bash
+# CPU 环境 [Windows/Linux/macOS]
+uv venv --python 3.10 .venv-cpu
+source .venv-cpu/bin/activate      # Linux/macOS/WSL2
+# .venv-cpu\Scripts\activate       # Windows
+
+# CUDA 12.x 环境 [Windows/Linux]
+uv venv --python 3.12 .venv-cu12
+source .venv-cu12/bin/activate     # Linux
+# .venv-cu12\Scripts\activate      # Windows
+
+# CUDA 11.x 环境 [Windows/Linux]
+uv venv --python 3.11 .venv-cu11
+source .venv-cu11/bin/activate     # Linux
+# .venv-cu11\Scripts\activate      # Windows
+```
 
 ### 1.2 安装
 
-#### 1.2.1 Pip 安装
+#### 1.2.1 Pip 安装（稳定版本）
 
-您可以通过以下命令轻松安装 X-AnyLabeling 的最新稳定版本：
+您可以通过以下命令轻松安装 X-AnyLabeling 的最新稳定版本（推荐使用 `uv pip`）：
 
 ```bash
+pip install -U uv
+
 # CPU [Windows/Linux/macOS]
-pip install x-anylabeling-cvhub[cpu]
+uv pip install x-anylabeling-cvhub[cpu]
 
 # CUDA 12.x 是 GPU 版本的默认选项 [Windows/Linux]
-pip install x-anylabeling-cvhub[gpu]
+uv pip install x-anylabeling-cvhub[gpu]
 
 # CUDA 11.x [Windows/Linux]
-pip install x-anylabeling-cvhub[gpu-cu11]
+uv pip install x-anylabeling-cvhub[gpu-cu11]
 ```
 
-#### 1.2.2 Git 克隆
+#### 1.2.2 Git 克隆（推荐）
 
 **步骤 a.** 克隆代码仓库。
 
@@ -90,25 +122,25 @@ git clone https://github.com/CVHub520/X-AnyLabeling.git
 cd X-AnyLabeling
 ```
 
-克隆完仓库以后，您可以根据需要自行选择开发者模式或常规模式安装相应的依赖。
-
-**步骤 b.1.** 开发者模式
+**步骤 b.** 安装依赖。
 
 ```bash
+pip install -U uv
+
 # CPU [Windows/Linux/macOS]
-pip install -e .[cpu]
+uv pip install -e .[cpu]
 
 # CUDA 12.x 是 GPU 版本的默认选项 [Windows/Linux]
-pip install -e .[gpu]
+uv pip install -e .[gpu]
 
 # CUDA 11.x [Windows/Linux]
-pip install -e .[gpu-cu11]
+uv pip install -e .[gpu-cu11]
 ```
 
 如果您需要进行二次开发或打包编译，可同步安装 `dev` 依赖，例如：
 
 ```bash
-pip install -e .[cpu,dev]
+uv pip install -e .[cpu,dev]
 ```
 
 安装完成后，可执行以下命令进行验证：
@@ -164,39 +196,9 @@ xanylabeling convert         # 列出所有支持的转换任务
 xanylabeling convert <task>  # 查看特定转换任务的详细帮助和使用示例，例如：xlabel2yolo
 ```
 
-**步骤 b.2.** 常规模式
-
-对于不同的配置，X-AnyLabeling 提供了以下依赖文件：
-
-| 依赖文件                   | 操作系统        | 运行环境 | 可编译   |
-|----------------------------|-----------------|----------|----------|
-| requirements.txt           | Windows/Linux   | CPU      | 否       |
-| requirements-dev.txt       | Windows/Linux   | CPU      | 是       |
-| requirements-gpu.txt       | Windows/Linux   | GPU      | 否       |
-| requirements-gpu-dev.txt   | Windows/Linux   | GPU      | 是       |
-| requirements-macos.txt     | MacOS           | CPU      | 否       |
-| requirements-macos-dev.txt | MacOS           | CPU      | 是       |
-
-**说明**：
-
-- 如果您需要进行二次开发或打包编译，请选择带有 `*-dev.txt` 后缀的依赖文件。
-- 如需启用 GPU 加速，请选择带有 `*-gpu.txt` 后缀的依赖文件。
-
-使用以下命令安装依赖包，将 `[xxx]` 替换为适合您需求的配置名称：
-
-```bash
-pip install -r requirements-[xxx].txt
-```
-
-> [!NOTE]
-> **macOS 用户特别说明**：需要额外从 conda-forge 源安装特定版本的软件包：
-> ```bash
-> conda install -c conda-forge pyqt==5.15.9 pyqtwebengine
-> ```
-
 > [!IMPORTANT]
 > 对于 GPU 加速，请按照以下说明，确保您本地的 CUDA 和 cuDNN 版本与 ONNX Runtime 版本兼容，并安装所需依赖库，以确保 GPU 加速推理正常运行：
-> 
+>
 > - Ⅰ. [CUDA Execution Provider](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html)
 > - Ⅱ. [Get started with ONNX Runtime in Python](https://onnxruntime.ai/docs/get-started/with-python.html)
 > - Ⅲ. [ONNX Runtime Compatibility](https://onnxruntime.ai/docs/reference/compatibility.html)
@@ -211,7 +213,7 @@ pip install -r requirements-[xxx].txt
 完成必要步骤后，可使用以下命令生成资源文件：
 
 ```bash
-pyrcc5 -o anylabeling/resources/resources.py anylabeling/resources/resources.qrc
+python scripts/compile_languages.py
 ```
 
 **可选步骤**：设置环境变量
@@ -230,16 +232,10 @@ set PYTHONPATH=C:\path\to\X-AnyLabeling
 > pip uninstall anylabeling -y
 > ```
 
-**运行应用程序**
-
-```bash
-python anylabeling/app.py
-```
-
 > [!NOTE]
 > **Fedora KDE 用户特别说明**：如果遇到鼠标移动缓慢或响应延迟的问题，可以尝试使用 `--qt-platform xcb` 参数来提升性能：
 > ```bash
-> python anylabeling/app.py --qt-platform xcb
+> xanylabeling--qt-platform xcb
 > ```
 
 #### 1.2.3 GUI 安装包
@@ -274,9 +270,9 @@ python anylabeling/app.py
 
 - **验证 GPU 环境**：如果编译 GPU 版本，请先激活相应的 GPU 运行环境，并执行 `pip list | grep onnxruntime-gpu` 以确保其正确安装。
 
-- **Windows-GPU 编译**：手动修改 `x-anylabeling-win-gpu.spec` 文件中的 `datas` 列表参数，以将本地 `onnxruntime-gpu` 动态库的相关 `*.dll` 文件添加到列表中。
+- **Windows-GPU 编译**：手动修改 `packaging/pyinstaller/specs/x-anylabeling-win-gpu.spec` 文件中的 `datas` 列表参数，以将本地 `onnxruntime-gpu` 动态库的相关 `*.dll` 文件添加到列表中。
 
-- **Linux-GPU 编译**：手动修改 `x-anylabeling-linux-gpu.spec` 文件中的 `datas` 列表参数，以将本地 `onnxruntime-gpu` 动态库的相关 `*.so` 文件添加到列表中。此外，请确保根据您的 CUDA 版本下载匹配的 `onnxruntime-gpu` 包。有关详细的兼容性信息，请参阅[官方文档](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html)。
+- **Linux-GPU 编译**：手动修改 `packaging/pyinstaller/specs/x-anylabeling-linux-gpu.spec` 文件中的 `datas` 列表参数，以将本地 `onnxruntime-gpu` 动态库的相关 `*.so` 文件添加到列表中。此外，请确保根据您的 CUDA 版本下载匹配的 `onnxruntime-gpu` 包。有关详细的兼容性信息，请参阅[官方文档](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html)。
 
 ### 3.2 编译命令
 
@@ -300,8 +296,8 @@ bash scripts/build_executable.sh macos
 > [!TIP]
 > 如果在 Windows 上执行上述命令时遇到权限问题，在确保完成上述准备步骤后，可以直接执行以下命令：
 > ```bash
-> pyinstaller --noconfirm anylabeling-win-cpu.spec
-> pyinstaller --noconfirm anylabeling-win-gpu.spec
+> pyinstaller --noconfirm packaging/pyinstaller/specs/x-anylabeling-win-cpu.spec
+> pyinstaller --noconfirm packaging/pyinstaller/specs/x-anylabeling-win-gpu.spec
 > ```
 
 </details>

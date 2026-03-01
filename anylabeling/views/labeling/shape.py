@@ -1,7 +1,7 @@
 import copy
 import math
 
-from PyQt5 import QtCore, QtGui
+from PyQt6 import QtCore, QtGui
 
 from . import utils
 from ..labeling.logger import logger
@@ -254,7 +254,7 @@ class Shape:
             # Try using integer sizes for smoother drawing(?)
             pen.setWidth(max(1, int(round(self.line_width / self.scale))))
             if self.difficult and self.shape_type != "point":
-                pen.setStyle(QtCore.Qt.DashLine)
+                pen.setStyle(QtCore.Qt.PenStyle.DashLine)
             painter.setPen(pen)
 
             line_path = QtGui.QPainterPath()
@@ -375,7 +375,7 @@ class Shape:
                 pen = QtGui.QPen(outline_color)
                 pen.setWidth(max(1, int(round(self.line_width / self.scale))))
                 painter.setPen(pen)
-                painter.setBrush(QtCore.Qt.NoBrush)
+                painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
                 painter.drawEllipse(
                     QtCore.QPointF(p0.x(), p0.y()), d / 2.0, d / 2.0
                 )
@@ -404,7 +404,7 @@ class Shape:
         pen = QtGui.QPen(color)
         pen.setWidth(max(1, int(round(self.line_width / self.scale))))
         painter.setPen(pen)
-        painter.setBrush(QtCore.Qt.NoBrush)
+        painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
 
         half_angle_rad = math.radians(40)
         tip_len = max(4, 10 / self.scale)
@@ -517,7 +517,7 @@ class Shape:
         """Computes parameters to draw with `QPainterPath::addEllipse`"""
         if len(line) != 2:
             return None
-        (c, _) = line
+        c, _ = line
         r = line[0] - line[1]
         d = math.sqrt(math.pow(r.x(), 2) + math.pow(r.y(), 2))
         rectangle = QtCore.QRectF(c.x() - d, c.y() - d, 2 * d, 2 * d)

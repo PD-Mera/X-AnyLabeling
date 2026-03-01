@@ -21,7 +21,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import yaml
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 from anylabeling.app_info import (
     __appname__,
@@ -41,6 +41,7 @@ from anylabeling.views.labeling.utils import new_icon, gradient_text
 from anylabeling.views.labeling.utils.theme import (
     init_theme,
     get_app_stylesheet,
+    get_dark_palette,
 )
 from anylabeling.views.labeling.utils.update_checker import (
     check_for_updates_async,
@@ -303,17 +304,16 @@ def main():
     loaded_language = translator.load(
         ":/languages/translations/" + language + ".qm"
     )
-    # Enable scaling for high dpi screens
-    QtWidgets.QApplication.setAttribute(
-        QtCore.Qt.AA_EnableHighDpiScaling, True
-    )  # enable highdpi scaling
-    QtWidgets.QApplication.setAttribute(
-        QtCore.Qt.AA_UseHighDpiPixmaps, True
-    )  # use highdpi icons
-    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
+    QtCore.QCoreApplication.setAttribute(
+        QtCore.Qt.ApplicationAttribute.AA_ShareOpenGLContexts
+    )
 
     app = QtWidgets.QApplication(sys.argv)
     init_theme(config.get("theme", "light"))
+    _dark_palette = get_dark_palette()
+    if _dark_palette is not None:
+        app.setStyle("Fusion")
+        app.setPalette(_dark_palette)
     app.setStyleSheet(get_app_stylesheet())
     app.processEvents()
 

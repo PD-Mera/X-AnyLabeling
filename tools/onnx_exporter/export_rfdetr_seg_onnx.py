@@ -5,7 +5,6 @@ import numpy as np
 import onnxruntime as ort
 from PIL import Image
 
-
 """
 The onnxruntime demo of the Rf-DETR with instance segmentation
 Written by Wei Wang (CVHub)

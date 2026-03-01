@@ -11,7 +11,6 @@ sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 from anylabeling.views.labeling.label_converter import LabelConverter
 from anylabeling.views.labeling.logger import logger
 
-
 IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff"]
 LABEL_EXTENSIONS = {
     "dota": ".txt",

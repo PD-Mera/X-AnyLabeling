@@ -236,7 +236,7 @@ def apply_color_mask(image: np.ndarray, color: tuple):
     g = np.zeros_like(image).astype(np.uint8)
     b = np.zeros_like(image).astype(np.uint8)
 
-    (r[image == 1], g[image == 1], b[image == 1]) = color
+    r[image == 1], g[image == 1], b[image == 1] = color
     colored_mask = np.stack([r, g, b], axis=2)
     return colored_mask
 

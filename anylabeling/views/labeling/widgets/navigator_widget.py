@@ -2,15 +2,15 @@
 
 from typing import List, Optional, Any
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import (
+from PyQt6 import QtWidgets
+from PyQt6.QtCore import (
     QPoint,
     QRect,
     QSize,
     Qt,
     pyqtSignal,
 )
-from PyQt5.QtGui import (
+from PyQt6.QtGui import (
     QBrush,
     QColor,
     QMouseEvent,
@@ -18,7 +18,7 @@ from PyQt5.QtGui import (
     QPen,
     QPixmap,
 )
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -40,16 +40,17 @@ class ClickableSlider(QSlider):
 
     def mousePressEvent(self, event: QMouseEvent):
         """Handle mouse press events for click-to-jump functionality"""
-        if event.button() == Qt.LeftButton:
-            if self.orientation() == Qt.Horizontal:
+        if event.button() == Qt.MouseButton.LeftButton:
+            if self.orientation() == Qt.Orientation.Horizontal:
                 handle_width = self.style().pixelMetric(
-                    self.style().PM_SliderThickness
+                    QtWidgets.QStyle.PixelMetric.PM_SliderThickness
                 )
                 slider_min = self.minimum()
                 slider_max = self.maximum()
                 current_value = self.value()
                 slider_width = self.width() - handle_width
 
+                click_x = event.position().x()
                 if slider_max > slider_min:
                     handle_ratio = (current_value - slider_min) / (
                         slider_max - slider_min
@@ -58,13 +59,11 @@ class ClickableSlider(QSlider):
                         handle_width // 2 + handle_ratio * slider_width
                     )
 
-                    click_x = event.x()
                     if abs(click_x - handle_pos) <= handle_width // 2 + 5:
                         super().mousePressEvent(event)
                         return
 
                 # Click is on track, jump to position
-                click_x = event.x()
                 effective_x = max(
                     handle_width // 2,
                     min(slider_width + handle_width // 2, click_x),
@@ -90,7 +89,9 @@ class NavigatorWidget(QWidget):
 
         # Widget properties
         self.setMinimumSize(150, 150)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
         self.setWindowTitle(self.tr("Navigator"))
 
         # Image and viewport data
@@ -151,7 +152,9 @@ class NavigatorWidget(QWidget):
 
         # Scale image to fit available space while keeping aspect ratio
         self.thumbnail = self.original_image.scaled(
-            available_size, Qt.KeepAspectRatio, Qt.SmoothTransformation
+            available_size,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
         )
 
         # Calculate thumbnail position (centered)
@@ -202,7 +205,7 @@ class NavigatorWidget(QWidget):
     def paintEvent(self, event) -> None:
         """Paint the navigator widget with thumbnail, shapes, and viewport overlay."""
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.fillRect(self.rect(), self.background_brush)
 
         if self.thumbnail and not self.thumbnail.isNull():
@@ -210,7 +213,7 @@ class NavigatorWidget(QWidget):
             self._draw_shapes_overlay(painter)
             if not self.viewport_rect.isEmpty():
                 painter.setPen(self.viewport_pen)
-                painter.setBrush(QBrush(Qt.NoBrush))  # No fill
+                painter.setBrush(QBrush(Qt.BrushStyle.NoBrush))  # No fill
                 painter.drawRect(self.viewport_rect)
 
     def _draw_shapes_overlay(self, painter):
@@ -311,7 +314,7 @@ class NavigatorWidget(QWidget):
         should_fill: bool = getattr(shape, "fill", False)
 
         if not should_fill:
-            return QBrush(Qt.NoBrush)
+            return QBrush(Qt.BrushStyle.NoBrush)
 
         fill_color: Optional[QColor] = None
 
@@ -326,7 +329,7 @@ class NavigatorWidget(QWidget):
         if fill_color and fill_color.isValid():
             return QBrush(fill_color)
 
-        return QBrush(Qt.NoBrush)
+        return QBrush(Qt.BrushStyle.NoBrush)
 
     def _points_in_bounds(self, points: List[QPoint]) -> bool:
         """Check if shape points are within reasonable bounds for rendering."""
@@ -369,7 +372,7 @@ class NavigatorWidget(QWidget):
     def _draw_polygon_on_thumbnail(self, painter, points):
         """Draw polygon on thumbnail"""
         if len(points) >= 2:
-            from PyQt5.QtGui import QPolygon
+            from PyQt6.QtGui import QPolygon
 
             polygon = QPolygon(points)
             painter.drawPolygon(polygon)
@@ -415,22 +418,25 @@ class NavigatorWidget(QWidget):
 
     def mousePressEvent(self, event) -> None:
         """Handle mouse press events for navigation interaction."""
-        if event.button() == Qt.LeftButton and self.image_rect.contains(
-            event.pos()
+        pos = event.position().toPoint()
+        if (
+            event.button() == Qt.MouseButton.LeftButton
+            and self.image_rect.contains(pos)
         ):
             self.dragging = True
-            self.last_drag_pos = event.pos()
-            self._emit_navigation_signal(event.pos())
+            self.last_drag_pos = pos
+            self._emit_navigation_signal(pos)
 
     def mouseMoveEvent(self, event) -> None:
         """Handle mouse move events during navigation dragging."""
-        if self.dragging and self.image_rect.contains(event.pos()):
-            self._emit_navigation_signal(event.pos())
-            self.last_drag_pos = event.pos()
+        pos = event.position().toPoint()
+        if self.dragging and self.image_rect.contains(pos):
+            self._emit_navigation_signal(pos)
+            self.last_drag_pos = pos
 
     def mouseReleaseEvent(self, event) -> None:
         """Handle mouse release events to end navigation interaction."""
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self.dragging = False
 
     def wheelEvent(self, event) -> None:
@@ -467,10 +473,14 @@ class NavigatorDialog(QtWidgets.QDialog):
 
         self.setWindowTitle(self.tr("Navigator"))
         self.setWindowFlags(
-            Qt.Window | Qt.WindowStaysOnTopHint | Qt.WindowCloseButtonHint
+            Qt.WindowType.Window
+            | Qt.WindowType.WindowStaysOnTopHint
+            | Qt.WindowType.WindowCloseButtonHint
         )
 
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
 
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(5, 5, 5, 5)
@@ -492,8 +502,7 @@ class NavigatorDialog(QtWidgets.QDialog):
         t = get_theme()
         zoom_input_container = QWidget()
         zoom_input_container.setFixedSize(60, 24)
-        zoom_input_container.setStyleSheet(
-            f"""
+        zoom_input_container.setStyleSheet(f"""
             QWidget {{
                 border: 1px solid {t["border"]};
                 border-radius: 4px;
@@ -502,8 +511,7 @@ class NavigatorDialog(QtWidgets.QDialog):
             QWidget:hover {{
                 background-color: {t["background_hover"]};
             }}
-        """
-        )
+        """)
 
         zoom_input_layout = QHBoxLayout(zoom_input_container)
         zoom_input_layout.setContentsMargins(6, 2, 6, 2)
@@ -511,10 +519,9 @@ class NavigatorDialog(QtWidgets.QDialog):
 
         self.zoom_input = QLineEdit()
         self.zoom_input.setFixedWidth(35)
-        self.zoom_input.setAlignment(Qt.AlignRight)
+        self.zoom_input.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.zoom_input.setText("100")
-        self.zoom_input.setStyleSheet(
-            f"""
+        self.zoom_input.setStyleSheet(f"""
             QLineEdit {{
                 border: none;
                 background: transparent;
@@ -527,14 +534,12 @@ class NavigatorDialog(QtWidgets.QDialog):
                 border: none;
                 background: transparent;
             }}
-        """
-        )
+        """)
         self.zoom_input.returnPressed.connect(self.on_zoom_input_changed)
         self.zoom_input.editingFinished.connect(self.on_zoom_input_changed)
 
         percentage_label = QLabel("%")
-        percentage_label.setStyleSheet(
-            f"""
+        percentage_label.setStyleSheet(f"""
             QLabel {{ 
                 color: {t["text_secondary"]}; 
                 font-size: 10px; 
@@ -543,27 +548,24 @@ class NavigatorDialog(QtWidgets.QDialog):
                 border: none;
                 padding: 0px;
             }}
-        """
-        )
+        """)
 
         zoom_input_layout.addWidget(self.zoom_input)
         zoom_input_layout.addWidget(percentage_label)
 
         zoom_out_icon = QLabel("−")
         zoom_out_icon.setFixedSize(16, 16)
-        zoom_out_icon.setAlignment(Qt.AlignCenter)
-        zoom_out_icon.setStyleSheet(
-            f"""
+        zoom_out_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        zoom_out_icon.setStyleSheet(f"""
             QLabel {{ 
                 color: {t["text_secondary"]}; 
                 font-size: 14px; 
                 font-weight: bold;
                 background: transparent;
             }}
-        """
-        )
+        """)
 
-        self.zoom_slider = ClickableSlider(Qt.Horizontal)
+        self.zoom_slider = ClickableSlider(Qt.Orientation.Horizontal)
         self.zoom_slider.setRange(1, 1000)
         self.zoom_slider.setValue(100)
         self.zoom_slider.setStyleSheet(ChatbotDialogStyle.get_slider_style())
@@ -571,17 +573,15 @@ class NavigatorDialog(QtWidgets.QDialog):
 
         zoom_in_icon = QLabel("+")
         zoom_in_icon.setFixedSize(16, 16)
-        zoom_in_icon.setAlignment(Qt.AlignCenter)
-        zoom_in_icon.setStyleSheet(
-            f"""
+        zoom_in_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        zoom_in_icon.setStyleSheet(f"""
             QLabel {{ 
                 color: {t["text_secondary"]}; 
                 font-size: 14px; 
                 font-weight: bold;
                 background: transparent;
             }}
-        """
-        )
+        """)
 
         zoom_layout.addWidget(zoom_input_container)
         zoom_layout.addWidget(zoom_out_icon)
@@ -674,6 +674,8 @@ class NavigatorDialog(QtWidgets.QDialog):
         new_zoom = max(1, min(1000, new_zoom))
 
         self.set_zoom_value(new_zoom)
-        self.zoom_changed[int, QPoint].emit(new_zoom, event.pos())
+        self.zoom_changed[int, QPoint].emit(
+            new_zoom, event.position().toPoint()
+        )
 
         event.accept()

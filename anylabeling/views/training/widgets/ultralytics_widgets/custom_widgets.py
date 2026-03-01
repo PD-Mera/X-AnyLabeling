@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDoubleSpinBox,
@@ -16,9 +16,9 @@ from PyQt5.QtWidgets import (
     QHeaderView,
     QAbstractItemView,
 )
-from PyQt5 import QtCore
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QBrush, QColor
+from PyQt6 import QtCore
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QBrush, QColor
 
 from anylabeling.services.auto_training.ultralytics.config import *
 from anylabeling.services.auto_training.ultralytics.style import *
@@ -35,23 +35,20 @@ class CustomCheckBox(QCheckBox):
     def __init__(self, text="", parent=None):
         super().__init__(text, parent)
         t = get_theme()
-        self.setStyleSheet(
-            f"""
+        self.setStyleSheet(f"""
             QCheckBox {{
                 spacing: 8px;
                 color: {t["text"]};
             }}
             {get_checkbox_indicator_style()}
-        """
-        )
+        """)
 
 
 class CustomComboBox(QComboBox):
     def __init__(self, parent=None):
         super().__init__(parent)
         t = get_theme()
-        self.setStyleSheet(
-            f"""
+        self.setStyleSheet(f"""
             QComboBox {{
                 padding: 5px 8px;
                 background: {t["background_secondary"]};
@@ -106,8 +103,7 @@ class CustomComboBox(QComboBox):
                 background-color: {t["primary"]};
                 color: white;
             }}
-        """
-        )
+        """)
 
     def wheelEvent(self, event):
         event.ignore()
@@ -117,8 +113,7 @@ class CustomSpinBox(QSpinBox):
     def __init__(self, parent=None):
         super().__init__(parent)
         t = get_theme()
-        self.setStyleSheet(
-            f"""
+        self.setStyleSheet(f"""
             QSpinBox {{
                 padding: 5px 8px;
                 background: {t["background_secondary"]};
@@ -146,8 +141,7 @@ class CustomSpinBox(QSpinBox):
                 width: 12px;
                 height: 12px;
             }}
-        """
-        )
+        """)
 
     def wheelEvent(self, event):
         event.ignore()
@@ -157,8 +151,7 @@ class CustomDoubleSpinBox(QDoubleSpinBox):
     def __init__(self, parent=None):
         super().__init__(parent)
         t = get_theme()
-        self.setStyleSheet(
-            f"""
+        self.setStyleSheet(f"""
             QDoubleSpinBox {{
                 padding: 5px 8px;
                 background: {t["background_secondary"]};
@@ -186,19 +179,19 @@ class CustomDoubleSpinBox(QDoubleSpinBox):
                 width: 12px;
                 height: 12px;
             }}
-        """
-        )
+        """)
 
     def wheelEvent(self, event):
         event.ignore()
 
 
 class CustomSlider(QSlider):
-    def __init__(self, orientation=QtCore.Qt.Horizontal, parent=None):
+    def __init__(
+        self, orientation=QtCore.Qt.Orientation.Horizontal, parent=None
+    ):
         super().__init__(orientation, parent)
         t = get_theme()
-        self.setStyleSheet(
-            f"""
+        self.setStyleSheet(f"""
             QSlider {{
                 height: 28px;
             }}
@@ -219,8 +212,7 @@ class CustomSlider(QSlider):
                 background: {t["primary"]};
                 border-radius: 2px;
             }}
-        """
-        )
+        """)
 
     def wheelEvent(self, event):
         event.ignore()
@@ -230,8 +222,7 @@ class CustomLineEdit(QLineEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
         t = get_theme()
-        self.setStyleSheet(
-            f"""
+        self.setStyleSheet(f"""
             QLineEdit {{
                 border: 1px solid {t["border"]};
                 border-radius: 8px;
@@ -249,8 +240,7 @@ class CustomLineEdit(QLineEdit):
                 border: 2px solid {t["highlight"]};
                 background-color: {t["background_secondary"]};
             }}
-        """
-        )
+        """)
 
 
 class CustomQPushButton(QPushButton):
@@ -259,7 +249,7 @@ class CustomQPushButton(QPushButton):
         self.setFixedHeight(36)
         self.setMinimumWidth(80)
         self.selected = False
-        self.setFocusPolicy(Qt.NoFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.update_style()
 
     def set_selected(self, selected):
@@ -269,8 +259,7 @@ class CustomQPushButton(QPushButton):
     def update_style(self):
         t = get_theme()
         if self.selected:
-            self.setStyleSheet(
-                f"""
+            self.setStyleSheet(f"""
                 QPushButton {{
                     background-color: {t["primary"]};
                     color: white;
@@ -285,11 +274,9 @@ class CustomQPushButton(QPushButton):
                 QPushButton:focus {{
                     outline: none;
                 }}
-            """
-            )
+            """)
         else:
-            self.setStyleSheet(
-                f"""
+            self.setStyleSheet(f"""
                 QPushButton {{
                     background-color: {t["surface"]};
                     color: {t["text"]};
@@ -307,8 +294,7 @@ class CustomQPushButton(QPushButton):
                 QPushButton:focus {{
                     outline: none;
                 }}
-            """
-            )
+            """)
 
 
 class PrimaryButton(QPushButton):
@@ -329,8 +315,7 @@ class TrainingConfirmDialog(QDialog):
         self.setWindowTitle("Start Training")
         self.setFixedSize(752, 320)
         t = get_theme()
-        self.setStyleSheet(
-            f"""
+        self.setStyleSheet(f"""
             QDialog {{
                 background-color: {t["background"]};
                 border-radius: 8px;
@@ -339,8 +324,7 @@ class TrainingConfirmDialog(QDialog):
                 background-color: transparent;
                 color: {t["text"]};
             }}
-        """
-        )
+        """)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
@@ -363,8 +347,7 @@ class TrainingConfirmDialog(QDialog):
         command_display.setPlainText(cmd_text)
         command_display.setReadOnly(True)
         command_display.setFixedHeight(160)
-        command_display.setStyleSheet(
-            f"""
+        command_display.setStyleSheet(f"""
             QTextEdit {{
                 background-color: {t["surface"]};
                 color: {t["text"]};
@@ -375,8 +358,7 @@ class TrainingConfirmDialog(QDialog):
                 padding: 12px;
                 line-height: 1.4;
             }}
-        """
-        )
+        """)
         layout.addWidget(command_display)
 
         button_layout = QHBoxLayout()
@@ -416,16 +398,16 @@ class CustomTable(QTableWidget):
         self.setup_table()
 
     def setup_table(self):
-        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.setSelectionMode(QAbstractItemView.NoSelection)
-        self.setFocusPolicy(Qt.NoFocus)
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setAlternatingRowColors(True)
         self.setShowGrid(False)
         self.verticalHeader().setVisible(False)
         self.setStyleSheet(get_custom_table_style())
 
         header = self.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         header.setStretchLastSection(True)
 
     def load_data(self, table_data):
@@ -450,9 +432,12 @@ class CustomTable(QTableWidget):
         for row, row_data in enumerate(data_rows):
             for col, value in enumerate(row_data):
                 item = QTableWidgetItem(str(value))
-                item.setTextAlignment(Qt.AlignCenter)
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
                 if col == 0:
-                    item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+                    item.setTextAlignment(
+                        Qt.AlignmentFlag.AlignLeft
+                        | Qt.AlignmentFlag.AlignVCenter
+                    )
 
                 self.setItem(row, col, item)

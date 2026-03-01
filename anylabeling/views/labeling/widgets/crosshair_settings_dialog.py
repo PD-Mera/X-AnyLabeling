@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore
 
 from anylabeling.views.labeling.utils.qt import new_icon_path
 from anylabeling.views.labeling.utils.style import (
@@ -23,7 +23,8 @@ class CrosshairSettingsDialog(QtWidgets.QDialog):
         self.setModal(True)
         self.setFixedSize(460, 320)
         self.setWindowFlags(
-            self.windowFlags() & ~QtCore.Qt.WindowContextHelpButtonHint
+            self.windowFlags()
+            & ~QtCore.Qt.WindowType.WindowContextHelpButtonHint
         )
 
         self.setStyleSheet(get_dialog_style())
@@ -50,7 +51,7 @@ class CrosshairSettingsDialog(QtWidgets.QDialog):
         self.width_label.setMinimumWidth(100)
         width_layout.addWidget(self.width_label)
 
-        self.width_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.width_slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         self.width_slider.setMinimum(10)
         self.width_slider.setMaximum(100)
         self.width_slider.setValue(int(self._width * 10))
@@ -62,7 +63,7 @@ class CrosshairSettingsDialog(QtWidgets.QDialog):
         self.width_spinbox.setSingleStep(0.1)
         self.width_spinbox.setValue(self._width)
         self.width_spinbox.setFixedWidth(68)
-        self.width_spinbox.setAlignment(QtCore.Qt.AlignRight)
+        self.width_spinbox.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
         width_layout.addWidget(self.width_spinbox)
 
         # Line opacity controls
@@ -72,7 +73,9 @@ class CrosshairSettingsDialog(QtWidgets.QDialog):
         self.opacity_label.setMinimumWidth(100)
         opacity_layout.addWidget(self.opacity_label)
 
-        self.opacity_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.opacity_slider = QtWidgets.QSlider(
+            QtCore.Qt.Orientation.Horizontal
+        )
         self.opacity_slider.setMinimum(0)
         self.opacity_slider.setMaximum(100)
         self.opacity_slider.setValue(int(self._opacity * 100))
@@ -84,7 +87,7 @@ class CrosshairSettingsDialog(QtWidgets.QDialog):
         self.opacity_spinbox.setSingleStep(0.01)
         self.opacity_spinbox.setValue(self._opacity)
         self.opacity_spinbox.setFixedWidth(68)
-        self.opacity_spinbox.setAlignment(QtCore.Qt.AlignRight)
+        self.opacity_spinbox.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
         opacity_layout.addWidget(self.opacity_spinbox)
 
         # Color controls
@@ -148,7 +151,7 @@ class CrosshairSettingsDialog(QtWidgets.QDialog):
     def move_to_center(self):
         """Move dialog to center of the screen"""
         qr = self.frameGeometry()
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        cp = self.screen().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 

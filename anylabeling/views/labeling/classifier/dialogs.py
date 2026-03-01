@@ -1,8 +1,9 @@
 import os
 from collections import Counter
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
+    QAbstractItemView,
     QDialog,
     QFileDialog,
     QFrame,
@@ -155,8 +156,7 @@ class NewLabelDialog(QDialog):
             self.existing_text.setPlainText("\n".join(self.existing_labels))
             self.existing_text.setReadOnly(True)
             self.existing_text.setMaximumHeight(120)
-            self.existing_text.setStyleSheet(
-                f"""
+            self.existing_text.setStyleSheet(f"""
                 QTextEdit {{
                     border: 1px solid {t["border"]};
                     border-radius: 8px;
@@ -165,8 +165,7 @@ class NewLabelDialog(QDialog):
                     color: {t["text_secondary"]};
                     font-size: 13px;
                 }}
-            """
-            )
+            """)
             layout.addWidget(self.existing_text)
 
         new_label = QLabel(self.tr("Enter new labels (one per line):"))
@@ -175,8 +174,7 @@ class NewLabelDialog(QDialog):
 
         t = get_theme()
         self.text_edit = QTextEdit()
-        self.text_edit.setStyleSheet(
-            f"""
+        self.text_edit.setStyleSheet(f"""
             QTextEdit {{
                 border: 1px solid {t["border"]};
                 border-radius: 8px;
@@ -189,8 +187,7 @@ class NewLabelDialog(QDialog):
                 border: 2px solid {t["highlight"]};
                 outline: none;
             }}
-        """
-        )
+        """)
         layout.addWidget(self.text_edit)
 
         button_layout = QHBoxLayout()
@@ -326,9 +323,9 @@ class NewLabelDialog(QDialog):
                     "3. Add new labels to matching files\n\n"
                     "Continue?"
                 ),
-                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
-            if reply == QMessageBox.Yes:
+            if reply == QMessageBox.StandardButton.Yes:
                 self.accept()
         else:
             self.accept()
@@ -361,7 +358,9 @@ class DeleteLabelDialog(QDialog):
         layout.addWidget(label)
 
         self.list_widget = QListWidget()
-        self.list_widget.setSelectionMode(QListWidget.MultiSelection)
+        self.list_widget.setSelectionMode(
+            QAbstractItemView.SelectionMode.MultiSelection
+        )
         for label_name in self.labels:
             self.list_widget.addItem(label_name)
         layout.addWidget(self.list_widget)
@@ -398,9 +397,9 @@ class DeleteLabelDialog(QDialog):
             self,
             self.tr("Confirm Delete"),
             template % ", ".join(selected_labels),
-            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
-        if reply == QMessageBox.Yes:
+        if reply == QMessageBox.StandardButton.Yes:
             self.accept()
 
     def get_selected_labels(self):
@@ -432,12 +431,14 @@ class EditLabelDialog(QDialog):
         )
         self.table_widget.setRowCount(len(self.labels))
         self.table_widget.horizontalHeader().setSectionResizeMode(
-            QHeaderView.Stretch
+            QHeaderView.ResizeMode.Stretch
         )
 
         for i, label_text in enumerate(self.labels):
             current_label = QTableWidgetItem(label_text)
-            current_label.setFlags(current_label.flags() & ~Qt.ItemIsEditable)
+            current_label.setFlags(
+                current_label.flags() & ~Qt.ItemFlag.ItemIsEditable
+            )
             self.table_widget.setItem(i, 0, current_label)
             new_label = QTableWidgetItem(label_text)
             self.table_widget.setItem(i, 1, new_label)
@@ -502,10 +503,10 @@ class EditLabelDialog(QDialog):
             self,
             self.tr("Confirm Changes"),
             self.tr("Save changes to %d labels?") % len(new_labels),
-            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
-        if reply == QMessageBox.Yes:
+        if reply == QMessageBox.StandardButton.Yes:
             self.accept()
 
     def get_edit_info(self):
@@ -551,9 +552,8 @@ class StatisticsViewDialog(QDialog):
 
         t = get_theme()
         separator = QFrame()
-        separator.setFrameShape(QFrame.HLine)
-        separator.setStyleSheet(
-            f"""
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setStyleSheet(f"""
             QFrame {{
                 color: {t["border"]};
                 background-color: {t["border"]};
@@ -561,8 +561,7 @@ class StatisticsViewDialog(QDialog):
                 height: 1px;
                 margin: 8px 0;
             }}
-        """
-        )
+        """)
         layout.addWidget(separator)
 
         self.distribution_widget = QWidget()
@@ -608,45 +607,39 @@ class StatisticsViewDialog(QDialog):
     def create_kpi_chip(self, title, value, color):
         _t = get_theme()
         widget = QWidget()
-        widget.setStyleSheet(
-            f"""
+        widget.setStyleSheet(f"""
             QWidget {{
                 background-color: {_t["surface"]};
                 border-radius: 8px;
                 padding: 12px 16px;
             }}
-        """
-        )
+        """)
 
         layout = QVBoxLayout(widget)
         layout.setSpacing(2)
         layout.setContentsMargins(0, 0, 0, 0)
 
         value_label = QLabel(str(value))
-        value_label.setStyleSheet(
-            f"""
+        value_label.setStyleSheet(f"""
             QLabel {{
                 font-size: 12px;
                 font-weight: 700;
                 color: {color};
                 margin: 0;
             }}
-        """
-        )
-        value_label.setAlignment(Qt.AlignCenter)
+        """)
+        value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         title_label = QLabel(title)
-        title_label.setStyleSheet(
-            f"""
+        title_label.setStyleSheet(f"""
             QLabel {{
                 font-size: 11px;
                 color: {_t["text_secondary"]};
                 font-weight: 500;
                 margin: 0;
             }}
-        """
-        )
-        title_label.setAlignment(Qt.AlignCenter)
+        """)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         layout.addWidget(value_label)
         layout.addWidget(title_label)
@@ -664,17 +657,15 @@ class StatisticsViewDialog(QDialog):
         if not label_counts:
             _t = get_theme()
             no_data_label = QLabel(self.tr("No labeled data available"))
-            no_data_label.setStyleSheet(
-                f"""
+            no_data_label.setStyleSheet(f"""
                 QLabel {{
                     color: {_t["text_secondary"]};
                     font-size: 13px;
                     font-style: italic;
                     padding: 20px;
                 }}
-            """
-            )
-            no_data_label.setAlignment(Qt.AlignCenter)
+            """)
+            no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             chart_layout.addWidget(no_data_label)
             return
 
@@ -711,15 +702,13 @@ class StatisticsViewDialog(QDialog):
         label_widget.setFixedWidth(label_width)
         if len(label_name) > 15:
             label_widget.setToolTip(label_name)
-        label_widget.setStyleSheet(
-            f"""
+        label_widget.setStyleSheet(f"""
             QLabel {{
                 font-size: 12px;
                 color: {_t["text"]};
                 font-weight: 500;
             }}
-        """
-        )
+        """)
         layout.addWidget(label_widget)
 
         progress_bar = QProgressBar()
@@ -739,8 +728,7 @@ class StatisticsViewDialog(QDialog):
         else:
             text_color = _t["text_secondary"]
 
-        progress_bar.setStyleSheet(
-            f"""
+        progress_bar.setStyleSheet(f"""
             QProgressBar {{
                 border: none;
                 border-radius: 10px;
@@ -754,8 +742,7 @@ class StatisticsViewDialog(QDialog):
                 background-color: {color};
                 border-radius: 10px;
             }}
-        """
-        )
+        """)
 
         layout.addWidget(progress_bar, 1)
         return widget

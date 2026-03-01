@@ -2,8 +2,8 @@ import os
 import cv2
 import numpy as np
 
-from PyQt5 import QtCore
-from PyQt5.QtCore import QCoreApplication
+from PyQt6 import QtCore
+from PyQt6.QtCore import QCoreApplication
 
 from anylabeling.app_info import __preferred_device__
 from anylabeling.views.labeling.shape import Shape
@@ -34,6 +34,7 @@ class DAMO_YOLO(Model):
             "input_iou",
             "edit_iou",
             "toggle_preserve_existing_annotations",
+            "button_classes_filter",
         ]
         output_modes = {
             "rectangle": QCoreApplication.translate("Model", "Rectangle"),
@@ -75,6 +76,13 @@ class DAMO_YOLO(Model):
     def set_auto_labeling_preserve_existing_annotations_state(self, state):
         """Toggle the preservation of existing annotations based on the checkbox state."""
         self.replace = not state
+
+    def set_auto_labeling_filter_classes(self, class_names):
+        """Set filter classes by name."""
+        if not class_names or len(class_names) == len(self.classes):
+            self.filter_classes = []
+        else:
+            self.filter_classes = class_names
 
     def preprocess(self, input_image):
         src_h, src_w, _ = input_image.shape
