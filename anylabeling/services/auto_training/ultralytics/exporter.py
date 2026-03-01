@@ -4,7 +4,7 @@ import threading
 from io import StringIO
 from typing import Tuple
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt6.QtCore import QObject, pyqtSignal
 
 
 from .utils import check_package_installed
@@ -350,6 +350,9 @@ class ExportManager:
             finally:
                 sys.stdout = original_stdout
                 sys.stderr = original_stderr
+
+                if os.environ.get("CUDA_VISIBLE_DEVICES") == "":
+                    del os.environ["CUDA_VISIBLE_DEVICES"]
 
         except Exception as e:
             self.notify_callbacks(

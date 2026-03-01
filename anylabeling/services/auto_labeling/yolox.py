@@ -1,8 +1,8 @@
 import os
 import cv2
 import numpy as np
-from PyQt5 import QtCore
-from PyQt5.QtCore import QCoreApplication
+from PyQt6 import QtCore
+from PyQt6.QtCore import QCoreApplication
 
 from anylabeling.app_info import __preferred_device__
 from anylabeling.views.labeling.shape import Shape
@@ -34,6 +34,7 @@ class YOLOX(Model):
             "input_iou",
             "edit_iou",
             "toggle_preserve_existing_annotations",
+            "button_classes_filter",
         ]
         output_modes = {
             "rectangle": QCoreApplication.translate("Model", "Rectangle"),
@@ -58,6 +59,7 @@ class YOLOX(Model):
         self.input_shape = self.net.get_input_shape()[-2:]
         self.nms_thres = self.config["iou_threshold"]
         self.conf_thres = self.config["conf_threshold"]
+        self.filter_classes = None
         self.replace = True
 
     def set_auto_labeling_conf(self, value):
@@ -73,6 +75,13 @@ class YOLOX(Model):
     def set_auto_labeling_preserve_existing_annotations_state(self, state):
         """Toggle the preservation of existing annotations based on the checkbox state."""
         self.replace = not state
+
+    def set_auto_labeling_filter_classes(self, class_names):
+        """Set filter classes by name."""
+        if not class_names or len(class_names) == len(self.classes):
+            self.filter_classes = None
+        else:
+            self.filter_classes = class_names
 
     def preprocess(self, input_image):
         """
@@ -171,6 +180,8 @@ class YOLOX(Model):
             x1, y1, x2, y2 = box
             score = float(score)
             label = str(self.classes[int(cls_inds)])
+            if self.filter_classes and label not in self.filter_classes:
+                continue
             rectangle_shape = Shape(
                 label=label, score=score, shape_type="rectangle"
             )

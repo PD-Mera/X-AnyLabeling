@@ -399,6 +399,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="button_classes_filter">
+       <property name="text">
+        <string>Classes</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="button_reset_tracker">
        <property name="text">
         <string>Reset Tracker</string>

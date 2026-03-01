@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QCoreApplication
+from PyQt6.QtCore import QCoreApplication
 
 from .__base__.yolo import YOLO
 
@@ -16,6 +16,7 @@ class YOLOv10(YOLO):
             "input_conf",
             "edit_conf",
             "toggle_preserve_existing_annotations",
+            "button_classes_filter",
         ]
         output_modes = {
             "point": QCoreApplication.translate("Model", "Point"),

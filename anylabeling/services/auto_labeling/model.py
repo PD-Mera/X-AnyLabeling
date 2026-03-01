@@ -19,10 +19,10 @@ socket.setdefaulttimeout(240)  # Prevent timeout when downloading models
 
 from abc import abstractmethod
 
-from PyQt5.QtCore import QCoreApplication, QFile, QObject
-from PyQt5.QtGui import QImage
+from PyQt6.QtCore import QCoreApplication, QFile, QObject
+from PyQt6.QtGui import QImage
 
-from .types import AutoLabelingResult
+from .types import AutoLabelingResult, DownloadCancelledError
 from anylabeling.config import get_config, get_work_directory
 from anylabeling.views.labeling.logger import logger
 from anylabeling.views.labeling.label_file import LabelFile, LabelFileError
@@ -80,9 +80,10 @@ class Model(QObject):
         "https://github.com/CVHub520/X-AnyLabeling/releases/tag"
     )
 
-    # Add retry settings
     MAX_RETRIES = 2
     RETRY_DELAY = 3  # seconds
+    DOWNLOAD_CHUNK_SIZE = 64 * 1024  # 64KB
+    DOWNLOAD_TIMEOUT = 30  # seconds per connection/read
 
     class Meta(QObject):
         required_config_names = []
@@ -95,7 +96,6 @@ class Model(QObject):
     def __init__(self, model_config, on_message) -> None:
         super().__init__()
         self.on_message = on_message
-        # Load and check config
         if isinstance(model_config, str):
             if not os.path.isfile(model_config):
                 raise FileNotFoundError(
@@ -113,6 +113,8 @@ class Model(QObject):
                     "Model", "Unknown config type: {type}"
                 ).format(type=type(model_config))
             )
+        self._cancel_event = self.config.pop("_cancel_event", None)
+        self._on_progress = self.config.pop("_on_progress", None)
         self.check_missing_config(
             config_names=self.Meta.required_config_names,
             config=self.config,
@@ -148,26 +150,70 @@ class Model(QObject):
             logger.error(f"An error occurred during data migration: {str(e)}")
             return False
 
+    def _check_cancelled(self):
+        if self._cancel_event and self._cancel_event.is_set():
+            raise DownloadCancelledError("Download cancelled by user")
+
     def download_with_retry(self, url, dest_path, progress_callback):
-        """Download file with retry mechanism"""
+        """Download file with retry mechanism and cancellation support.
+
+        Uses chunk-based downloading so the cancel flag can be checked between
+        chunks, giving the user near-instant cancellation.
+        """
+        part_path = dest_path + ".part"
+
         for attempt in range(self.MAX_RETRIES):
             try:
                 if attempt > 0:
                     logger.warning(
                         f"Retry attempt {attempt + 1}/{self.MAX_RETRIES}"
                     )
-                urllib.request.urlretrieve(url, dest_path, progress_callback)
+                self._check_cancelled()
+
+                req = urllib.request.Request(url)
+                response = urllib.request.urlopen(
+                    req, timeout=self.DOWNLOAD_TIMEOUT
+                )
+                total_size = int(response.headers.get("Content-Length", 0))
+                downloaded = 0
+
+                with open(part_path, "wb") as f:
+                    while True:
+                        self._check_cancelled()
+                        chunk = response.read(self.DOWNLOAD_CHUNK_SIZE)
+                        if not chunk:
+                            break
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        if progress_callback:
+                            progress_callback(downloaded, total_size)
+
+                os.replace(part_path, dest_path)
                 return True
-            except URLError as e:
+
+            except DownloadCancelledError:
+                if os.path.exists(part_path):
+                    os.remove(part_path)
+                raise
+
+            except (URLError, socket.timeout, OSError) as e:
+                if os.path.exists(part_path):
+                    os.remove(part_path)
                 delay = self.RETRY_DELAY * (attempt + 1)
                 if attempt < self.MAX_RETRIES - 1:
-                    error_msg = f"Connection failed, retrying in {delay}s... (Attempt {attempt + 1}/{self.MAX_RETRIES} failed)"
+                    error_msg = (
+                        f"Connection failed, retrying in {delay}s... "
+                        f"(Attempt {attempt + 1}/{self.MAX_RETRIES} failed)"
+                    )
                     logger.warning(error_msg)
                     self.on_message(error_msg)
-                    time.sleep(delay)
+                    for _ in range(delay):
+                        self._check_cancelled()
+                        time.sleep(1)
                 else:
                     logger.warning(
-                        f"All download attempts failed ({self.MAX_RETRIES} tries)"
+                        f"All download attempts failed "
+                        f"({self.MAX_RETRIES} tries)"
                     )
                     raise e
 
@@ -291,8 +337,11 @@ class Model(QObject):
         logger.info(f"Downloading {download_url} to {model_abs_path}")
         try:
 
-            def _progress(count, block_size, total_size):
-                percent = int(count * block_size * 100 / total_size)
+            def _progress(downloaded, total_size):
+                if total_size > 0:
+                    percent = int(downloaded * 100 / total_size)
+                else:
+                    percent = 0
                 self.on_message(
                     QCoreApplication.translate(
                         "Model", "Downloading {download_url}: {percent}%"
@@ -300,14 +349,20 @@ class Model(QObject):
                         download_url=ellipsis_download_url, percent=percent
                     )
                 )
+                if self._on_progress:
+                    self._on_progress(downloaded, total_size)
 
             self.download_with_retry(download_url, model_abs_path, _progress)
 
+        except DownloadCancelledError:
+            raise
+
         except Exception as e:  # noqa
             logger.error(
-                f"Could not download {download_url}: {e}, you can try to download it manually."
+                f"Could not download {download_url}: {e}, "
+                "you can try to download it manually."
             )
-            self.on_message(f"Download failed! Please try again later.")
+            self.on_message("Download failed! Please try again later.")
             time.sleep(1)
             return None
 

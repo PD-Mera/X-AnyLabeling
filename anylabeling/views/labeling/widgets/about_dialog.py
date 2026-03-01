@@ -1,6 +1,6 @@
 import threading
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QDialog,
     QLabel,
     QHBoxLayout,
@@ -8,13 +8,19 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QSizePolicy,
 )
-from PyQt5.QtCore import Qt, QSize, pyqtSignal, QTimer
-from PyQt5.QtGui import QIcon
+from PyQt6.QtCore import Qt, QSize, pyqtSignal, QTimer
+from PyQt6.QtGui import QIcon
 
 try:
-    from PyQt5.QtWebEngineWidgets import QWebEngineView
+    from PyQt6.QtWebEngineWidgets import QWebEngineView
+
+    _WEBENGINE_AVAILABLE = True
 except ImportError:
-    QWebEngineView = None
+    _WEBENGINE_AVAILABLE = False
+
+    class QWebEngineView:
+        pass
+
 
 from anylabeling.app_info import (
     __appname__,
@@ -67,8 +73,7 @@ class AboutDialog(QDialog):
         self.setFixedSize(350, 250)
 
         t = get_theme()
-        self.setStyleSheet(
-            f"""
+        self.setStyleSheet(f"""
             QDialog {{
                 background-color: {t["background"]};
                 border-radius: 10px;
@@ -107,8 +112,7 @@ class AboutDialog(QDialog):
                 background-color: {t["surface_hover"]};
                 border-radius: 4px;
             }}
-        """
-        )
+        """)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
@@ -117,13 +121,13 @@ class AboutDialog(QDialog):
         # App name and version
         title_label = QLabel(f"<b>X-AnyLabeling</b> v{__version__}")
         title_label.setStyleSheet("font-size: 16px;")
-        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
 
         # Links row - centered
         links_layout = QHBoxLayout()
         links_layout.setSpacing(8)
-        links_layout.setAlignment(Qt.AlignCenter)
+        links_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         website_btn = QPushButton(self.tr("Website"))
         website_btn.setObjectName("link-btn")
@@ -147,7 +151,7 @@ class AboutDialog(QDialog):
         # Social links - centered
         social_layout = QHBoxLayout()
         social_layout.setSpacing(4)
-        social_layout.setAlignment(Qt.AlignCenter)
+        social_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Email
         email_btn = QPushButton()
@@ -189,7 +193,7 @@ class AboutDialog(QDialog):
         # Changelog and update - centered
         update_layout = QHBoxLayout()
         update_layout.setSpacing(8)
-        update_layout.setAlignment(Qt.AlignCenter)
+        update_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         changelog_btn = QPushButton(self.tr("Changelog"))
         changelog_btn.setObjectName("link-btn")
@@ -214,7 +218,7 @@ class AboutDialog(QDialog):
         copyright_label.setStyleSheet(
             f"color: {t['text_secondary']}; font-size: 12px;"
         )
-        copyright_label.setAlignment(Qt.AlignCenter)
+        copyright_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(copyright_label)
 
         self.move_to_center()
@@ -327,7 +331,7 @@ class AboutDialog(QDialog):
             version=update_info["latest_version"]
         )
         title_label = QLabel(display_text)
-        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         _t = get_theme()
         title_label.setStyleSheet(
             f"font-size: 16px; font-weight: bold; color: {_t['primary']};"
@@ -335,14 +339,24 @@ class AboutDialog(QDialog):
         )
         layout.addWidget(title_label)
 
-        web_view = QWebEngineView()
-        web_view.setMinimumHeight(350)
-        web_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        web_view.setHtml(
-            convert_markdown_to_html(update_info["release_notes"])
-        )
-
-        layout.addWidget(web_view)
+        if _WEBENGINE_AVAILABLE:
+            web_view = QWebEngineView()
+            web_view.setMinimumHeight(350)
+            web_view.setSizePolicy(
+                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+            )
+            web_view.setHtml(
+                convert_markdown_to_html(update_info["release_notes"])
+            )
+            layout.addWidget(web_view)
+        else:
+            notes_label = QLabel(update_info.get("release_notes", ""))
+            notes_label.setWordWrap(True)
+            notes_label.setMinimumHeight(350)
+            notes_label.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextSelectableByMouse
+            )
+            layout.addWidget(notes_label)
 
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -360,7 +374,7 @@ class AboutDialog(QDialog):
         button_layout.addWidget(ok_btn)
         layout.addLayout(button_layout)
 
-        dialog.exec_()
+        dialog.exec()
 
     def _handle_update_ok(self, dialog, url):
         """Handle OK button click in update dialog"""

@@ -1,13 +1,13 @@
 from typing import Dict, List, Tuple
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget,
     QFrame,
     QVBoxLayout,
     QLabel,
     QGridLayout,
 )
-from PyQt5.QtCore import Qt
+from PyQt6.QtCore import Qt
 
 from anylabeling.views.labeling.chatbot.config import *
 from anylabeling.views.labeling.utils.theme import get_theme
@@ -28,9 +28,11 @@ class CustomTooltip(QWidget):
         t = get_theme()
         text_color = text_color or t["text_secondary"]
         background_color = background_color or t["background"]
-        self.setWindowFlags(Qt.ToolTip | Qt.FramelessWindowHint)
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setAttribute(Qt.WA_ShowWithoutActivating)
+        self.setWindowFlags(
+            Qt.WindowType.ToolTip | Qt.WindowType.FramelessWindowHint
+        )
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
 
         self.container = QFrame(self)
         self.container.setObjectName("tooltip_container")
@@ -57,14 +59,13 @@ class CustomTooltip(QWidget):
                 name_label.setStyleSheet(f"color: {text_color};")
                 value_label = QLabel(value)
                 value_label.setStyleSheet(f"color: {text_color};")
-                value_label.setAlignment(Qt.AlignRight)
+                value_label.setAlignment(Qt.AlignmentFlag.AlignRight)
                 grid_layout.addWidget(name_label, i, 0)
                 grid_layout.addWidget(value_label, i, 1)
 
             layout.addLayout(grid_layout)
 
-        self.setStyleSheet(
-            f"""
+        self.setStyleSheet(f"""
             QWidget {{
                 background-color: transparent;
             }}
@@ -73,8 +74,7 @@ class CustomTooltip(QWidget):
                 border-radius: 16px;
                 border: 1px solid rgba(0, 0, 0, 0.1);
             }}
-        """
-        )
+        """)
 
     def show_at(self, pos):
         """Show tooltip at specified position"""
@@ -126,7 +126,6 @@ class ChatbotDialogStyle:
             background-color: {theme["background_secondary"]};
             selection-background-color: {theme["primary"]};
             font-size: {FONT_SIZE_NORMAL};
-            transition: border {ANIMATION_DURATION} ease;
         }}
         QLineEdit:focus, QTextEdit:focus {{
             border: 2px solid {theme["primary"]};
@@ -189,7 +188,6 @@ class ChatbotDialogStyle:
                 color: {theme["text"]};
                 font-size: {FONT_SIZE_NORMAL};
                 font-weight: 450;
-                transition: all {ANIMATION_DURATION} ease;
             }}
             QPushButton:focus {{
                 outline: none;

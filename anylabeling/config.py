@@ -7,7 +7,6 @@ import importlib.resources as pkg_resources
 from anylabeling import configs as anylabeling_configs
 from anylabeling.views.labeling.logger import logger
 
-
 current_config_file = None
 _work_directory = None
 

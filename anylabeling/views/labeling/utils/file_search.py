@@ -32,7 +32,7 @@ def parse_search_pattern(search_text: str) -> SearchPattern:
 
     Examples:
         - "test" -> normal text search
-        - "<\.png$>" -> regex search
+        - "<\\.png$>" -> regex search
         - "difficult::1" -> attribute search for difficult objects
         - "gid::0" -> attribute search for files with group_id 0
         - "gid::1" -> attribute search for files with group_id 1

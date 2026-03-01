@@ -8,4 +8,5 @@ class YOLO26(YOLO):
             "input_conf",
             "edit_conf",
             "toggle_preserve_existing_annotations",
+            "button_classes_filter",
         ]

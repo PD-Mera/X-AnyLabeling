@@ -9,6 +9,54 @@ import markdown.extensions.smarty
 from anylabeling.views.labeling.utils.theme import get_theme
 
 
+def convert_markdown_to_qt_html(content: str) -> str:
+    """Convert markdown to styled HTML for Qt rich-text fallback rendering.
+
+    Produces HTML with inline Pygments syntax highlighting (via codehilite
+    noclasses mode) and a ``<style>`` block for structural elements,
+    compatible with Qt's QTextDocument engine used by QLabel/QTextBrowser.
+
+    Args:
+        content (str): Raw markdown text.
+
+    Returns:
+        str: Styled HTML string.
+    """
+    t = get_theme()
+    html_content = markdown.markdown(
+        content,
+        extensions=[
+            "fenced_code",
+            "codehilite",
+            "tables",
+            "attr_list",
+            "smarty",
+        ],
+        extension_configs={
+            "codehilite": {
+                "linenums": False,
+                "guess_lang": True,
+                "use_pygments": True,
+                "noclasses": True,
+            },
+            "fenced_code": {"lang_prefix": "language-"},
+        },
+    )
+    return (
+        f"<html><head><style>"
+        f"body {{ font-family: -apple-system, sans-serif; "
+        f"font-size: 13px; line-height: 1.5; color: {t['text']}; }}"
+        f"pre {{ background-color: {t['background_secondary']}; padding: 12px; }}"
+        f"code {{ font-family: Consolas, monospace; font-size: 12px; }}"
+        f"th, td {{ padding: 6px 13px; border: 1px solid {t['border']}; }}"
+        f"th {{ background-color: {t['background_secondary']}; font-weight: 600; }}"
+        f"blockquote {{ border-left: 3px solid {t['border']}; "
+        f"padding-left: 12px; color: {t['text_secondary']}; }}"
+        f"a {{ color: {t['highlight_text']}; text-decoration: none; }}"
+        f"</style></head><body>{html_content}</body></html>"
+    )
+
+
 def convert_markdown_to_html(content):
     """Set the HTML style for the content label with GitHub-style markdown rendering and LaTeX support"""
     extension_configs = {

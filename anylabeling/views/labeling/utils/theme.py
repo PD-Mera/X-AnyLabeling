@@ -1,6 +1,8 @@
 import os
 import subprocess
-from typing import Dict
+from typing import Dict, Optional
+
+from PyQt6.QtGui import QColor, QPalette
 
 try:
     import darkdetect as _darkdetect
@@ -643,3 +645,64 @@ def get_app_stylesheet() -> str:
             border-radius: 2px;
         }}
     """
+
+
+def get_dark_palette() -> Optional[QPalette]:
+    """
+    Returns a QPalette configured for the active dark theme, or None in light
+    mode.  Setting this palette on QApplication (or a specific QWidget) ensures
+    that every child widget without an explicit stylesheet background still
+    renders with the correct dark colours — particularly important on Windows
+    where the native style engine can ignore stylesheet background-color rules
+    for plain QWidget containers.
+    """
+    if _active_mode != "dark":
+        return None
+    t = _active_theme
+    palette = QPalette()
+    bg = QColor(t["background"])
+    bg2 = QColor(t["background_secondary"])
+    text = QColor(t["text"])
+    text2 = QColor(t["text_secondary"])
+    surface = QColor(t["surface"])
+    highlight = QColor(t["selection"])
+    highlight_text = QColor(t["selection_text"])
+    tooltip_bg = QColor(t["tooltip_bg"])
+    tooltip_text = QColor(t["tooltip_text"])
+    placeholder = QColor(t["text_placeholder"])
+
+    for group in (
+        QPalette.ColorGroup.Active,
+        QPalette.ColorGroup.Inactive,
+        QPalette.ColorGroup.Disabled,
+    ):
+        palette.setColor(group, QPalette.ColorRole.Window, bg)
+        palette.setColor(group, QPalette.ColorRole.WindowText, text)
+        palette.setColor(group, QPalette.ColorRole.Base, bg2)
+        palette.setColor(group, QPalette.ColorRole.AlternateBase, bg)
+        palette.setColor(group, QPalette.ColorRole.Text, text)
+        palette.setColor(group, QPalette.ColorRole.BrightText, text)
+        palette.setColor(group, QPalette.ColorRole.Button, surface)
+        palette.setColor(group, QPalette.ColorRole.ButtonText, text)
+        palette.setColor(group, QPalette.ColorRole.Highlight, highlight)
+        palette.setColor(
+            group, QPalette.ColorRole.HighlightedText, highlight_text
+        )
+        palette.setColor(group, QPalette.ColorRole.ToolTipBase, tooltip_bg)
+        palette.setColor(group, QPalette.ColorRole.ToolTipText, tooltip_text)
+        palette.setColor(
+            group, QPalette.ColorRole.PlaceholderText, placeholder
+        )
+        palette.setColor(group, QPalette.ColorRole.Mid, surface)
+        palette.setColor(group, QPalette.ColorRole.Dark, bg)
+        palette.setColor(group, QPalette.ColorRole.Shadow, bg)
+
+    # Dim text in disabled state while keeping dark backgrounds
+    for role in (
+        QPalette.ColorRole.WindowText,
+        QPalette.ColorRole.Text,
+        QPalette.ColorRole.ButtonText,
+    ):
+        palette.setColor(QPalette.ColorGroup.Disabled, role, text2)
+
+    return palette

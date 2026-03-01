@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QCoreApplication
+from PyQt6.QtCore import QCoreApplication
 
 from .rfdetr import RFDETR
 
@@ -18,6 +18,7 @@ class RFDETR_Seg(RFDETR):
             "input_conf",
             "edit_conf",
             "toggle_preserve_existing_annotations",
+            "button_classes_filter",
             "mask_fineness_slider",
             "mask_fineness_value_label",
         ]

@@ -35,6 +35,7 @@ from .image import (
 from ._io import io_open
 from .qt import (
     Struct,
+    StayOpenMenuFilter,
     add_actions,
     scan_all_images,
     distance,

@@ -373,7 +373,7 @@ class GroundingDINO(nn.Module):
         }
 
     def combine_features(self, features):
-        (bs, c, h, w) = (
+        bs, c, h, w = (
             features[0].decompose()[0].shape[-4],
             features[0].decompose()[0].shape[-3],
             features[0].decompose()[0].shape[-2],
@@ -523,11 +523,11 @@ class GroundingDINO(nn.Module):
 
         else:
             features, poss = self.backbone(samples)
-            (h, w) = (
+            h, w = (
                 samples.decompose()[0][0].shape[1],
                 samples.decompose()[0][0].shape[2],
             )
-            (orig_img_h, orig_img_w) = orig_img.shape[1], orig_img.shape[2]
+            orig_img_h, orig_img_w = orig_img.shape[1], orig_img.shape[2]
             bs = len(samples.decompose()[0])
 
             exemp_imgs = []

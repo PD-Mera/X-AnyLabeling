@@ -4,7 +4,7 @@ from anylabeling.views.labeling.utils.theme import (
     get_mode,
     _checkbox_indicator_qss,
 )
-from PyQt5.QtGui import QColor
+from PyQt6.QtGui import QColor
 
 
 def get_table_item_bg_color() -> "QColor":
@@ -749,5 +749,51 @@ def get_dialog_style() -> str:
         }}
         QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
             width: 0;
+        }}
+    """
+
+
+def get_download_progress_bar_style():
+    t = get_theme()
+    return f"""
+        QProgressBar {{
+            border: none;
+            border-radius: 3px;
+            background-color: {t["surface"]};
+            text-align: center;
+            color: transparent;
+            min-height: 6px;
+            max-height: 6px;
+        }}
+        QProgressBar::chunk {{
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                stop:0 #0066FF,
+                stop:0.5 #00A6FF,
+                stop:1 #0066FF);
+            border-radius: 3px;
+        }}
+    """
+
+
+def get_cancel_download_button_style():
+    t = get_theme()
+    return f"""
+        QPushButton {{
+            background-color: transparent;
+            border: 1px solid {t["border"]};
+            border-radius: 4px;
+            color: {t["text_secondary"]};
+            padding: 2px 10px;
+            font-size: 11px;
+        }}
+        QPushButton:hover {{
+            background-color: {t["error"]};
+            border-color: {t["error"]};
+            color: #ffffff;
+        }}
+        QPushButton:pressed {{
+            background-color: #CC362E;
+            border-color: #CC362E;
+            color: #ffffff;
         }}
     """

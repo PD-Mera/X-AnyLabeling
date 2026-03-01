@@ -2,8 +2,8 @@ import os
 import cv2
 import numpy as np
 
-from PyQt5 import QtCore
-from PyQt5.QtCore import QCoreApplication
+from PyQt6 import QtCore
+from PyQt6.QtCore import QCoreApplication
 
 from anylabeling.app_info import __preferred_device__
 from anylabeling.views.labeling.shape import Shape
@@ -186,7 +186,7 @@ class YOLOv5CarPlateDetRec(Model):
     def four_point_transform(self, image, pts):
         # Perspective transformation to obtain a corrected image for easier recognition
         rect = self.order_points(pts)
-        (tl, tr, br, bl) = rect
+        tl, tr, br, bl = rect
 
         widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
         widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))

@@ -20,7 +20,6 @@ from functions.ms_deform_attn_func import (
     ms_deform_attn_core_pytorch,
 )
 
-
 N, M, D = 1, 2, 2
 Lq, L, P = 2, 2, 2
 shapes = torch.as_tensor([(6, 4), (3, 2)], dtype=torch.long).cuda()

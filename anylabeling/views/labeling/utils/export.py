@@ -5,9 +5,9 @@ import pathlib
 import shutil
 import time
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtWidgets import (
+from PyQt6 import QtWidgets
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtWidgets import (
     QHBoxLayout,
     QVBoxLayout,
     QProgressDialog,
@@ -147,7 +147,7 @@ def export_yolo_annotation(self, mode):
             self,
             self.tr("Select Export Directory"),
             path_edit.text(),
-            QtWidgets.QFileDialog.DontUseNativeDialog,
+            QtWidgets.QFileDialog.Option.DontUseNativeDialog,
         )
         if path:
             path_edit.setText(path)
@@ -192,7 +192,7 @@ def export_yolo_annotation(self, mode):
     layout.addLayout(button_layout)
 
     dialog.setLayout(layout)
-    result = dialog.exec_()
+    result = dialog.exec()
 
     if not result:
         return
@@ -203,7 +203,7 @@ def export_yolo_annotation(self, mode):
 
     if osp.exists(save_path):
         msg_box = QtWidgets.QMessageBox(self)
-        msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+        msg_box.setIcon(QtWidgets.QMessageBox.Icon.Warning)
         msg_box.setWindowTitle(self.tr("Output Directory Exists!"))
         msg_box.setText(self.tr("Directory already exists. Choose an action:"))
         msg_box.setInformativeText(
@@ -214,15 +214,17 @@ def export_yolo_annotation(self, mode):
             )
         )
 
-        msg_box.addButton(self.tr("Yes"), QtWidgets.QMessageBox.YesRole)
+        msg_box.addButton(
+            self.tr("Yes"), QtWidgets.QMessageBox.ButtonRole.YesRole
+        )
         no_button = msg_box.addButton(
-            self.tr("No"), QtWidgets.QMessageBox.NoRole
+            self.tr("No"), QtWidgets.QMessageBox.ButtonRole.NoRole
         )
         cancel_button = msg_box.addButton(
-            self.tr("Cancel"), QtWidgets.QMessageBox.RejectRole
+            self.tr("Cancel"), QtWidgets.QMessageBox.ButtonRole.RejectRole
         )
         msg_box.setStyleSheet(get_msg_box_style())
-        msg_box.exec_()
+        msg_box.exec()
 
         clicked_button = msg_box.clickedButton()
         if clicked_button == no_button:
@@ -238,7 +240,7 @@ def export_yolo_annotation(self, mode):
     progress_dialog = QProgressDialog(
         self.tr("Exporting..."), self.tr("Cancel"), 0, len(image_list), self
     )
-    progress_dialog.setWindowModality(Qt.WindowModal)
+    progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
     progress_dialog.setWindowTitle(self.tr("Progress"))
     progress_dialog.setMinimumWidth(500)
     progress_dialog.setMinimumHeight(150)
@@ -330,7 +332,7 @@ def export_voc_annotation(self, mode):
             self,
             self.tr("Select Export Directory"),
             path_edit.text(),
-            QtWidgets.QFileDialog.DontUseNativeDialog,
+            QtWidgets.QFileDialog.Option.DontUseNativeDialog,
         )
         if path:
             path_edit.setText(path)
@@ -375,7 +377,7 @@ def export_voc_annotation(self, mode):
     layout.addLayout(button_layout)
 
     dialog.setLayout(layout)
-    result = dialog.exec_()
+    result = dialog.exec()
 
     if not result:
         return
@@ -386,7 +388,7 @@ def export_voc_annotation(self, mode):
 
     if osp.exists(save_path):
         msg_box = QtWidgets.QMessageBox(self)
-        msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+        msg_box.setIcon(QtWidgets.QMessageBox.Icon.Warning)
         msg_box.setWindowTitle(self.tr("Output Directory Exists!"))
         msg_box.setText(self.tr("Directory already exists. Choose an action:"))
         msg_box.setInformativeText(
@@ -397,15 +399,17 @@ def export_voc_annotation(self, mode):
             )
         )
 
-        msg_box.addButton(self.tr("Yes"), QtWidgets.QMessageBox.YesRole)
+        msg_box.addButton(
+            self.tr("Yes"), QtWidgets.QMessageBox.ButtonRole.YesRole
+        )
         no_button = msg_box.addButton(
-            self.tr("No"), QtWidgets.QMessageBox.NoRole
+            self.tr("No"), QtWidgets.QMessageBox.ButtonRole.NoRole
         )
         cancel_button = msg_box.addButton(
-            self.tr("Cancel"), QtWidgets.QMessageBox.RejectRole
+            self.tr("Cancel"), QtWidgets.QMessageBox.ButtonRole.RejectRole
         )
         msg_box.setStyleSheet(get_msg_box_style())
-        msg_box.exec_()
+        msg_box.exec()
 
         clicked_button = msg_box.clickedButton()
         if clicked_button == no_button:
@@ -423,7 +427,7 @@ def export_voc_annotation(self, mode):
     progress_dialog = QProgressDialog(
         self.tr("Exporting..."), self.tr("Cancel"), 0, len(image_list), self
     )
-    progress_dialog.setWindowModality(Qt.WindowModal)
+    progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
     progress_dialog.setWindowTitle(self.tr("Progress"))
     progress_dialog.setMinimumWidth(500)
     progress_dialog.setMinimumHeight(150)
@@ -542,7 +546,7 @@ def export_coco_annotation(self, mode):
             self,
             self.tr("Select Export Directory"),
             path_edit.text(),
-            QtWidgets.QFileDialog.DontUseNativeDialog,
+            QtWidgets.QFileDialog.Option.DontUseNativeDialog,
         )
         if path:
             path_edit.setText(path)
@@ -574,7 +578,7 @@ def export_coco_annotation(self, mode):
     layout.addLayout(button_layout)
 
     dialog.setLayout(layout)
-    result = dialog.exec_()
+    result = dialog.exec()
 
     if not result:
         return
@@ -582,7 +586,7 @@ def export_coco_annotation(self, mode):
     save_path = path_edit.text()
     if osp.exists(save_path):
         msg_box = QtWidgets.QMessageBox(self)
-        msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+        msg_box.setIcon(QtWidgets.QMessageBox.Icon.Warning)
         msg_box.setWindowTitle(self.tr("Output Directory Exists!"))
         msg_box.setText(self.tr("Directory already exists. Choose an action:"))
         msg_box.setInformativeText(
@@ -592,12 +596,14 @@ def export_coco_annotation(self, mode):
             )
         )
 
-        msg_box.addButton(self.tr("Overwrite"), QtWidgets.QMessageBox.YesRole)
+        msg_box.addButton(
+            self.tr("Overwrite"), QtWidgets.QMessageBox.ButtonRole.YesRole
+        )
         cancel_button = msg_box.addButton(
-            self.tr("Cancel"), QtWidgets.QMessageBox.RejectRole
+            self.tr("Cancel"), QtWidgets.QMessageBox.ButtonRole.RejectRole
         )
         msg_box.setStyleSheet(get_msg_box_style())
-        msg_box.exec_()
+        msg_box.exec()
 
         clicked_button = msg_box.clickedButton()
         if clicked_button == cancel_button:
@@ -612,7 +618,7 @@ def export_coco_annotation(self, mode):
     progress_dialog = QProgressDialog(
         self.tr("Exporting..."), self.tr("Cancel"), 0, 0, self
     )
-    progress_dialog.setWindowModality(Qt.WindowModal)
+    progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
     progress_dialog.setWindowTitle(self.tr("Progress"))
     progress_dialog.setMinimumWidth(500)
     progress_dialog.setMinimumHeight(150)
@@ -699,7 +705,7 @@ def export_dota_annotation(self):
             self,
             self.tr("Select Export Directory"),
             path_edit.text(),
-            QtWidgets.QFileDialog.DontUseNativeDialog,
+            QtWidgets.QFileDialog.Option.DontUseNativeDialog,
         )
         if path:
             path_edit.setText(path)
@@ -731,7 +737,7 @@ def export_dota_annotation(self):
     layout.addLayout(button_layout)
 
     dialog.setLayout(layout)
-    result = dialog.exec_()
+    result = dialog.exec()
 
     if not result:
         return
@@ -740,7 +746,7 @@ def export_dota_annotation(self):
 
     if osp.exists(save_path):
         msg_box = QtWidgets.QMessageBox(self)
-        msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+        msg_box.setIcon(QtWidgets.QMessageBox.Icon.Warning)
         msg_box.setWindowTitle(self.tr("Output Directory Exists!"))
         msg_box.setText(self.tr("Directory already exists. Choose an action:"))
         msg_box.setInformativeText(
@@ -751,15 +757,17 @@ def export_dota_annotation(self):
             )
         )
 
-        msg_box.addButton(self.tr("Yes"), QtWidgets.QMessageBox.YesRole)
+        msg_box.addButton(
+            self.tr("Yes"), QtWidgets.QMessageBox.ButtonRole.YesRole
+        )
         no_button = msg_box.addButton(
-            self.tr("No"), QtWidgets.QMessageBox.NoRole
+            self.tr("No"), QtWidgets.QMessageBox.ButtonRole.NoRole
         )
         cancel_button = msg_box.addButton(
-            self.tr("Cancel"), QtWidgets.QMessageBox.RejectRole
+            self.tr("Cancel"), QtWidgets.QMessageBox.ButtonRole.RejectRole
         )
         msg_box.setStyleSheet(get_msg_box_style())
-        msg_box.exec_()
+        msg_box.exec()
 
         clicked_button = msg_box.clickedButton()
         if clicked_button == no_button:
@@ -777,7 +785,7 @@ def export_dota_annotation(self):
     progress_dialog = QProgressDialog(
         self.tr("Exporting..."), self.tr("Cancel"), 0, len(image_list), self
     )
-    progress_dialog.setWindowModality(Qt.WindowModal)
+    progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
     progress_dialog.setWindowTitle(self.tr("Progress"))
     progress_dialog.setMinimumWidth(500)
     progress_dialog.setMinimumHeight(150)
@@ -878,7 +886,7 @@ def export_mask_annotation(self):
             self,
             self.tr("Select Export Directory"),
             path_edit.text(),
-            QtWidgets.QFileDialog.DontUseNativeDialog,
+            QtWidgets.QFileDialog.Option.DontUseNativeDialog,
         )
         if path:
             path_edit.setText(path)
@@ -910,7 +918,7 @@ def export_mask_annotation(self):
     layout.addLayout(button_layout)
 
     dialog.setLayout(layout)
-    result = dialog.exec_()
+    result = dialog.exec()
 
     if not result:
         return
@@ -918,7 +926,7 @@ def export_mask_annotation(self):
     save_path = path_edit.text()
     if osp.exists(save_path):
         msg_box = QtWidgets.QMessageBox(self)
-        msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+        msg_box.setIcon(QtWidgets.QMessageBox.Icon.Warning)
         msg_box.setWindowTitle(self.tr("Output Directory Exists!"))
         msg_box.setText(self.tr("Directory already exists. Choose an action:"))
         msg_box.setInformativeText(
@@ -928,12 +936,14 @@ def export_mask_annotation(self):
             )
         )
 
-        msg_box.addButton(self.tr("Overwrite"), QtWidgets.QMessageBox.YesRole)
+        msg_box.addButton(
+            self.tr("Overwrite"), QtWidgets.QMessageBox.ButtonRole.YesRole
+        )
         cancel_button = msg_box.addButton(
-            self.tr("Cancel"), QtWidgets.QMessageBox.RejectRole
+            self.tr("Cancel"), QtWidgets.QMessageBox.ButtonRole.RejectRole
         )
         msg_box.setStyleSheet(get_msg_box_style())
-        msg_box.exec_()
+        msg_box.exec()
 
         clicked_button = msg_box.clickedButton()
         if clicked_button == cancel_button:
@@ -950,7 +960,7 @@ def export_mask_annotation(self):
     progress_dialog = QProgressDialog(
         self.tr("Exporting..."), self.tr("Cancel"), 0, len(image_list), self
     )
-    progress_dialog.setWindowModality(Qt.WindowModal)
+    progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
     progress_dialog.setWindowTitle(self.tr("Progress"))
     progress_dialog.setMinimumWidth(500)
     progress_dialog.setMinimumHeight(150)
@@ -1050,7 +1060,7 @@ def export_mot_annotation(self, mode):
             self,
             self.tr("Select Export Directory"),
             path_edit.text(),
-            QtWidgets.QFileDialog.DontUseNativeDialog,
+            QtWidgets.QFileDialog.Option.DontUseNativeDialog,
         )
         if path:
             path_edit.setText(path)
@@ -1082,7 +1092,7 @@ def export_mot_annotation(self, mode):
     layout.addLayout(button_layout)
 
     dialog.setLayout(layout)
-    result = dialog.exec_()
+    result = dialog.exec()
 
     if not result:
         return
@@ -1090,7 +1100,7 @@ def export_mot_annotation(self, mode):
     save_path = path_edit.text()
     if osp.exists(save_path):
         msg_box = QtWidgets.QMessageBox(self)
-        msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+        msg_box.setIcon(QtWidgets.QMessageBox.Icon.Warning)
         msg_box.setWindowTitle(self.tr("Output Directory Exists!"))
         msg_box.setText(self.tr("Directory already exists. Choose an action:"))
         msg_box.setInformativeText(
@@ -1100,12 +1110,14 @@ def export_mot_annotation(self, mode):
             )
         )
 
-        msg_box.addButton(self.tr("Overwrite"), QtWidgets.QMessageBox.YesRole)
+        msg_box.addButton(
+            self.tr("Overwrite"), QtWidgets.QMessageBox.ButtonRole.YesRole
+        )
         cancel_button = msg_box.addButton(
-            self.tr("Cancel"), QtWidgets.QMessageBox.RejectRole
+            self.tr("Cancel"), QtWidgets.QMessageBox.ButtonRole.RejectRole
         )
         msg_box.setStyleSheet(get_msg_box_style())
-        msg_box.exec_()
+        msg_box.exec()
 
         clicked_button = msg_box.clickedButton()
         if clicked_button == cancel_button:
@@ -1120,7 +1132,7 @@ def export_mot_annotation(self, mode):
     progress_dialog = QProgressDialog(
         self.tr("Exporting..."), self.tr("Cancel"), 0, 0, self
     )
-    progress_dialog.setWindowModality(Qt.WindowModal)
+    progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
     progress_dialog.setWindowTitle(self.tr("Progress"))
     progress_dialog.setMinimumWidth(500)
     progress_dialog.setMinimumHeight(150)
@@ -1205,7 +1217,7 @@ def export_pporc_annotation(self, mode):
             self,
             self.tr("Select Export Directory"),
             path_edit.text(),
-            QtWidgets.QFileDialog.DontUseNativeDialog,
+            QtWidgets.QFileDialog.Option.DontUseNativeDialog,
         )
         if path:
             path_edit.setText(path)
@@ -1237,7 +1249,7 @@ def export_pporc_annotation(self, mode):
     layout.addLayout(button_layout)
 
     dialog.setLayout(layout)
-    result = dialog.exec_()
+    result = dialog.exec()
 
     if not result:
         return
@@ -1245,7 +1257,7 @@ def export_pporc_annotation(self, mode):
     save_path = path_edit.text()
     if osp.exists(save_path):
         msg_box = QtWidgets.QMessageBox(self)
-        msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+        msg_box.setIcon(QtWidgets.QMessageBox.Icon.Warning)
         msg_box.setWindowTitle(self.tr("Output Directory Exists!"))
         msg_box.setText(self.tr("Directory already exists. Choose an action:"))
         msg_box.setInformativeText(
@@ -1255,12 +1267,14 @@ def export_pporc_annotation(self, mode):
             )
         )
 
-        msg_box.addButton(self.tr("Overwrite"), QtWidgets.QMessageBox.YesRole)
+        msg_box.addButton(
+            self.tr("Overwrite"), QtWidgets.QMessageBox.ButtonRole.YesRole
+        )
         cancel_button = msg_box.addButton(
-            self.tr("Cancel"), QtWidgets.QMessageBox.RejectRole
+            self.tr("Cancel"), QtWidgets.QMessageBox.ButtonRole.RejectRole
         )
         msg_box.setStyleSheet(get_msg_box_style())
-        msg_box.exec_()
+        msg_box.exec()
 
         clicked_button = msg_box.clickedButton()
         if clicked_button == cancel_button:
@@ -1286,7 +1300,7 @@ def export_pporc_annotation(self, mode):
     progress_dialog = QProgressDialog(
         self.tr("Exporting..."), self.tr("Cancel"), 0, len(image_list), self
     )
-    progress_dialog.setWindowModality(Qt.WindowModal)
+    progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
     progress_dialog.setWindowTitle(self.tr("Progress"))
     progress_dialog.setMinimumWidth(500)
     progress_dialog.setMinimumHeight(150)
@@ -1384,7 +1398,7 @@ def export_vlm_r1_ovd_annotation(self):
             self.tr("Select Export File"),
             path_edit.text(),
             "JSONL Files (*.jsonl)",
-            options=QtWidgets.QFileDialog.DontUseNativeDialog,
+            options=QtWidgets.QFileDialog.Option.DontUseNativeDialog,
         )
         if path:
             if not path.endswith(".jsonl"):
@@ -1506,7 +1520,7 @@ def export_vlm_r1_ovd_annotation(self):
     main_layout.addLayout(button_layout)
 
     dialog.setLayout(main_layout)
-    result = dialog.exec_()
+    result = dialog.exec()
 
     if not result:
         return
@@ -1517,7 +1531,7 @@ def export_vlm_r1_ovd_annotation(self):
     # --- File Exists Check ---
     if osp.exists(save_path):
         msg_box = QtWidgets.QMessageBox(self)
-        msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+        msg_box.setIcon(QtWidgets.QMessageBox.Icon.Warning)
         msg_box.setWindowTitle(self.tr("File Exists!"))
         msg_box.setText(self.tr("File already exists. Choose an action:"))
         msg_box.setInformativeText(
@@ -1527,15 +1541,15 @@ def export_vlm_r1_ovd_annotation(self):
             )
         )
         _ = msg_box.addButton(
-            self.tr("Overwrite"), QtWidgets.QMessageBox.YesRole
+            self.tr("Overwrite"), QtWidgets.QMessageBox.ButtonRole.YesRole
         )
         cancel_msg_button = msg_box.addButton(
-            self.tr("Cancel"), QtWidgets.QMessageBox.RejectRole
+            self.tr("Cancel"), QtWidgets.QMessageBox.ButtonRole.RejectRole
         )
         msg_box.setDefaultButton(cancel_msg_button)
 
         msg_box.setStyleSheet(get_msg_box_style())
-        msg_box.exec_()
+        msg_box.exec()
 
         clicked_button = msg_box.clickedButton()
         if clicked_button == cancel_msg_button:
@@ -1564,7 +1578,7 @@ def export_vlm_r1_ovd_annotation(self):
     progress_dialog = QProgressDialog(
         self.tr("Exporting..."), self.tr("Cancel"), 0, 0, self
     )
-    progress_dialog.setWindowModality(Qt.WindowModal)
+    progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
     progress_dialog.setWindowTitle(self.tr("Progress"))
     progress_dialog.setMinimumWidth(500)
     progress_dialog.setMinimumHeight(150)

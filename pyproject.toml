@@ -52,6 +52,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Scientific/Engineering :: Image Processing",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -64,15 +65,17 @@ classifiers = [
 # Note: onnx and onnxruntime are in optional-dependencies for version compatibility
 dependencies = [
     "natsort>=8.1.0",
-    "numpy<=1.26.4",
     "pillow>=7.1.2",
     "opencv-contrib-python-headless>=4.7.0.72",
-    "PyQt5>=5.15.7",
-    "PyQtWebEngine>=5.15.7",
+    "PyQt6>=6.6.0,<6.10.0; sys_platform == 'linux'",
+    "PyQt6>=6.6.0; sys_platform != 'linux'",
+    "PyQt6-WebEngine>=6.6.0,<6.10.0; sys_platform == 'linux'",
+    "PyQt6-WebEngine>=6.6.0; sys_platform != 'linux'",
     "qimage2ndarray>=1.10.0",
     "lapx>=0.5.5",
     "tqdm>=4.64.0",
     "scipy>=1.4.1",
+    "ml_dtypes>=0.5.0",
     "PyYAML",
     "importlib_metadata",
     "json_repair",
@@ -103,16 +106,19 @@ dev = [
 
 # CPU version: Latest ONNX + ONNXRuntime
 cpu = [
+    "numpy>=2.0.0",
     "onnx>=1.15.0",
     "onnxruntime>=1.15.0",
 ]
 # CUDA 12.x: Latest ONNX + ONNXRuntime GPU (>= 1.18.1 for CUDA 12.x support)
 gpu = [
+    "numpy>=2.0.0",
     "onnx>=1.15.0",
     "onnxruntime-gpu>=1.18.1; platform_system != 'Darwin'",
 ]
 # CUDA 11.x: ONNX < 1.16.1 + ONNXRuntime GPU < 1.19
 gpu-cu11 = [
+    "numpy<2.0.0",
     "onnx>=1.15.0,<1.16.1",
     "onnxruntime-gpu>=1.15.0,<1.19.0; platform_system != 'Darwin'",
 ]

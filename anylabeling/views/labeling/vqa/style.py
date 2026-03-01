@@ -104,17 +104,6 @@ def get_status_label_style() -> str:
     """
 
 
-def get_ui_style(theme: Dict[str, str] = None) -> str:
-    """Style for setup ui"""
-    theme = theme or get_theme()
-    return f"""
-        QDialog {{
-            background-color: {theme["background"]};
-            border-radius: 0px;
-        }}
-    """
-
-
 def get_main_splitter_style(theme: Dict[str, str] = None) -> str:
     theme = theme or get_theme()
     return f"""

@@ -5,7 +5,6 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 
-
 """
 The ONNX Export of the PULC Attribute Model
 Written by Wei Wang (CVHub)

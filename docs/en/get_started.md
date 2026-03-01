@@ -19,9 +19,11 @@ X-AnyLabeling provides multiple installation methods. You can install the offici
 
 #### 1.1.1 Miniconda
 
+If you are already using Miniconda, follow these steps:
+
 **Step 0.** Download and install Miniconda from the [official website](https://docs.anaconda.com/miniconda/).
 
-**Step 1.** Create a conda environment with Python 3.10 ~ 3.12 and activate it.
+**Step 1.** Create a conda environment with Python 3.10 ~ 3.13 (Python 3.12 is recommended) and activate it.
 
 > [!NOTE]
 > Other Python versions require compatibility verification on your own.
@@ -42,7 +44,7 @@ conda activate x-anylabeling-cu12
 
 #### 1.1.2 Venv
 
-In addition to Miniconda, you can also use Python's built-in `venv` module to create virtual environments. Here are the commands for creating and activating environments under different configurations:
+You can also use Python's built-in `venv` module to create virtual environments:
 
 ```bash
 # CPU [Windows/Linux/macOS]
@@ -61,27 +63,57 @@ source venv-cu11/bin/activate  # Linux
 # venv-cu11\Scripts\activate    # Windows
 ```
 
-> [!TIP]
-> For faster dependency installation and a more modern Python package management experience, we strongly recommend using [uv](https://github.com/astral-sh/uv) as your package manager. uv provides significantly faster installation speeds and better dependency resolution capabilities.
+#### 1.1.3 uv
+
+**Step 0.** Install uv:
+
+```bash
+# Linux / macOS / WSL2
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+**Step 1.** Create a virtual environment (uv downloads the required Python automatically) and activate it:
+
+```bash
+# CPU Environment [Windows/Linux/macOS]
+uv venv --python 3.10 .venv-cpu
+source .venv-cpu/bin/activate      # Linux/macOS/WSL2
+# .venv-cpu\Scripts\activate       # Windows
+
+# CUDA 12.x Environment [Windows/Linux]
+uv venv --python 3.12 .venv-cu12
+source .venv-cu12/bin/activate     # Linux
+# .venv-cu12\Scripts\activate      # Windows
+
+# CUDA 11.x Environment [Windows/Linux]
+uv venv --python 3.11 .venv-cu11
+source .venv-cu11/bin/activate     # Linux
+# .venv-cu11\Scripts\activate      # Windows
+```
 
 ### 1.2 Installation
 
-#### 1.2.1 Pip Installation
+#### 1.2.1 Pip Installation (Stable Version)
 
-You can easily install the latest stable version of X-AnyLabeling with the following commands:
+You can easily install the latest stable version of X-AnyLabeling with the following commands (using `uv pip` is recommended):
 
 ```bash
+pip install -U uv
+
 # CPU [Windows/Linux/macOS]
-pip install x-anylabeling-cvhub[cpu]
+uv pip install x-anylabeling-cvhub[cpu]
 
 # CUDA 12.x is the default GPU option [Windows/Linux]
-pip install x-anylabeling-cvhub[gpu]
+uv pip install x-anylabeling-cvhub[gpu]
 
 # CUDA 11.x [Windows/Linux]
-pip install x-anylabeling-cvhub[gpu-cu11]
+uv pip install x-anylabeling-cvhub[gpu-cu11]
 ```
 
-#### 1.2.2 Git Clone
+#### 1.2.2 Git Clone (Recommended)
 
 **Step a.** Clone the repository.
 
@@ -92,23 +124,25 @@ cd X-AnyLabeling
 
 After cloning the repository, you can choose to install the dependencies in either developer mode or regular mode according to your needs.
 
-**Step b.1.** Developer Mode
+**Step b.** Install the dependencies.
 
 ```bash
+pip install -U uv
+
 # CPU [Windows/Linux/macOS]
-pip install -e .[cpu]
+uv pip install -e .[cpu]
 
 # CUDA 12.x is the default GPU option [Windows/Linux]
-pip install -e .[gpu]
+uv pip install -e .[gpu]
 
 # CUDA 11.x [Windows/Linux]
-pip install -e .[gpu-cu11]
+uv pip install -e .[gpu-cu11]
 ```
 
 If you need to perform secondary development or package compilation, you can install the `dev` dependencies simultaneously, for example:
 
 ```bash
-pip install -e .[cpu,dev]
+uv pip install -e .[cpu,dev]
 ```
 
 After installation, you can verify it by running the following command:
@@ -164,39 +198,9 @@ xanylabeling convert         # List all supported conversion tasks
 xanylabeling convert <task>  # Show detailed help and examples for a specific task, i.e., xlabel2yolo
 ```
 
-**Step b.2.** Regular Mode
-
-For different configurations, X-AnyLabeling provides the following dependency files:
-
-| Dependency File            | Operating System | Runtime | Compilable |
-|----------------------------|------------------|---------|------------|
-| requirements.txt           | Windows/Linux    | CPU     | No         |
-| requirements-dev.txt       | Windows/Linux    | CPU     | Yes        |
-| requirements-gpu.txt       | Windows/Linux    | GPU     | No         |
-| requirements-gpu-dev.txt   | Windows/Linux    | GPU     | Yes        |
-| requirements-macos.txt     | MacOS            | CPU     | No         |
-| requirements-macos-dev.txt | MacOS            | CPU     | Yes        |
-
-**Description**:
-
-- If you need to perform secondary development or package compilation, please select dependency files with the `*-dev.txt` suffix.
-- If you need to enable GPU acceleration, please select dependency files with the `*-gpu.txt` suffix.
-
-Use the following command to install the necessary packages, replacing `[xxx]` with the configuration name that suits your needs:
-
-```bash
-pip install -r requirements-[xxx].txt
-```
-
-> [!NOTE]
-> **Special Note for macOS Users**: You need to additionally install specific versions of packages from the conda-forge source:
-> ```bash
-> conda install -c conda-forge pyqt==5.15.9 pyqtwebengine
-> ```
-
 > [!IMPORTANT]
 > For GPU acceleration, please follow the instructions below to ensure that your local CUDA and cuDNN versions are compatible with the ONNX Runtime version, and install the required dependencies to ensure GPU-accelerated inference works properly:
-> 
+>
 > - Ⅰ. [CUDA Execution Provider](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html)
 > - Ⅱ. [Get started with ONNX Runtime in Python](https://onnxruntime.ai/docs/get-started/with-python.html)
 > - Ⅲ. [ONNX Runtime Compatibility](https://onnxruntime.ai/docs/reference/compatibility.html)
@@ -211,7 +215,7 @@ pip install -r requirements-[xxx].txt
 After completing the necessary steps, you can generate resource files using the following command:
 
 ```bash
-pyrcc5 -o anylabeling/resources/resources.py anylabeling/resources/resources.qrc
+python scripts/compile_languages.py
 ```
 
 **Optional Step**: Set Environment Variables
@@ -230,16 +234,10 @@ set PYTHONPATH=C:\path\to\X-AnyLabeling
 > pip uninstall anylabeling -y
 > ```
 
-**Run the Application**
-
-```bash
-python anylabeling/app.py
-```
-
 > [!NOTE]
 > **Special Note for Fedora KDE Users**: If you encounter slow mouse movement or response lag, try using the `--qt-platform xcb` parameter to improve performance:
 > ```bash
-> python anylabeling/app.py --qt-platform xcb
+> xanylabeling --qt-platform xcb
 > ```
 
 #### 1.2.3 GUI Installer Package
@@ -274,9 +272,9 @@ To facilitate users running `X-AnyLabeling` on different platforms, this tool pr
 
 - **Verify GPU Environment**: If compiling the GPU version, please activate the corresponding GPU runtime environment first and execute `pip list | grep onnxruntime-gpu` to ensure it is properly installed.
 
-- **Windows-GPU Compilation**: Manually modify the `datas` list parameter in the `x-anylabeling-win-gpu.spec` file to add the relevant `*.dll` files of the local `onnxruntime-gpu` dynamic library to the list.
+- **Windows-GPU Compilation**: Manually modify the `datas` list parameter in the `packaging/pyinstaller/specs/x-anylabeling-win-gpu.spec` file to add the relevant `*.dll` files of the local `onnxruntime-gpu` dynamic library to the list.
 
-- **Linux-GPU Compilation**: Manually modify the `datas` list parameter in the `x-anylabeling-linux-gpu.spec` file to add the relevant `*.so` files of the local `onnxruntime-gpu` dynamic library to the list. Additionally, ensure that you download a matching `onnxruntime-gpu` package according to your CUDA version. For detailed compatibility information, please refer to the [official documentation](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html).
+- **Linux-GPU Compilation**: Manually modify the `datas` list parameter in the `packaging/pyinstaller/specs/x-anylabeling-linux-gpu.spec` file to add the relevant `*.so` files of the local `onnxruntime-gpu` dynamic library to the list. Additionally, ensure that you download a matching `onnxruntime-gpu` package according to your CUDA version. For detailed compatibility information, please refer to the [official documentation](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html).
 
 ### 3.2 Build Commands
 
@@ -300,9 +298,8 @@ bash scripts/build_executable.sh macos
 > [!TIP]
 > If you encounter permission issues when executing the above commands on Windows, after ensuring the above preparation steps are completed, you can directly execute the following commands:
 > ```bash
-> pyinstaller --noconfirm anylabeling-win-cpu.spec
-> pyinstaller --noconfirm anylabeling-win-gpu.spec
+> pyinstaller --noconfirm packaging/pyinstaller/specs/x-anylabeling-win-cpu.spec
+> pyinstaller --noconfirm packaging/pyinstaller/specs/x-anylabeling-win-gpu.spec
 > ```
 
 </details>
-

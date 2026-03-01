@@ -3,15 +3,18 @@ import copy
 import time
 import yaml
 import importlib.resources as pkg_resources
-from threading import Lock
+from threading import Lock, Event
 
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 
 import anylabeling.configs as auto_labeling_configs
 from anylabeling.utils import GenericWorker
 from anylabeling.views.labeling.logger import logger
 from anylabeling.config import get_config, save_config
-from anylabeling.services.auto_labeling.types import AutoLabelingResult
+from anylabeling.services.auto_labeling.types import (
+    AutoLabelingResult,
+    DownloadCancelledError,
+)
 from anylabeling.services.auto_labeling.utils import TimeoutContext
 from anylabeling.services.auto_labeling import (
     _CUSTOM_MODELS,
@@ -43,6 +46,8 @@ class ModelManager(QObject):
     prediction_finished = pyqtSignal()
     request_next_files_requested = pyqtSignal()
     output_modes_changed = pyqtSignal(dict, str)
+    download_progress = pyqtSignal(int, int)
+    download_finished = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -55,6 +60,7 @@ class ModelManager(QObject):
         self.model_download_thread = None
         self.model_execution_thread = None
         self.model_execution_thread_lock = Lock()
+        self._cancel_event = Event()
 
         self.load_model_configs()
 
@@ -152,9 +158,19 @@ class ModelManager(QObject):
         if self.loaded_model_config and self.loaded_model_config["model"]:
             self.loaded_model_config["model"].set_output_mode(mode)
 
+    def cancel_download(self):
+        """Cancel the current model download."""
+        self._cancel_event.set()
+
     @pyqtSlot()
     def on_model_download_finished(self):
         """Handle model download thread finished"""
+        self.download_finished.emit()
+        if self._cancel_event.is_set():
+            self._cancel_event.clear()
+            self.new_model_status.emit(self.tr("Download cancelled."))
+            self.model_loaded.emit({})
+            return
         if self.loaded_model_config and self.loaded_model_config["model"]:
             self.new_model_status.emit(
                 self.tr("Model loaded. Ready for labeling.")
@@ -311,6 +327,7 @@ class ModelManager(QObject):
             )
             return
 
+        self._cancel_event.clear()
         self.model_download_thread = QThread()
         template = "Loading model: {model_name}. Please wait..."
         translated_template = self.tr(template)
@@ -340,6 +357,12 @@ class ModelManager(QObject):
             self.auto_segmentation_model_unselected.emit()
 
         model_config = copy.deepcopy(self.model_configs[model_id])
+        model_config["_cancel_event"] = self._cancel_event
+        model_config["_on_progress"] = (
+            lambda downloaded, total: self.download_progress.emit(
+                downloaded, total
+            )
+        )
         if model_config["type"] == "yolov5":
             from .yolov5 import YOLOv5
 
@@ -2109,6 +2132,14 @@ class ModelManager(QObject):
             in _AUTO_LABELING_PROMPT_MODELS
         ):
             self.loaded_model_config["model"].set_auto_labeling_prompt()
+
+    def set_auto_labeling_filter_classes(self, class_names):
+        """Set the active class filter by name on the loaded model."""
+        if self.loaded_model_config is None:
+            return
+        model = self.loaded_model_config.get("model")
+        if model and hasattr(model, "set_auto_labeling_filter_classes"):
+            model.set_auto_labeling_filter_classes(class_names)
 
     def unload_model(self):
         """Unload model"""

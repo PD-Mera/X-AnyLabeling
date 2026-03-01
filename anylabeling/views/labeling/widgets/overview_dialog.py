@@ -3,10 +3,10 @@ import csv
 import json
 import zipfile
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QBrush, QColor
-from PyQt5.QtWidgets import (
+from PyQt6 import QtWidgets
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QBrush, QColor
+from PyQt6.QtWidgets import (
     QSpinBox,
     QFileDialog,
     QHBoxLayout,
@@ -40,9 +40,7 @@ def _get_overview_style() -> str:
     from anylabeling.views.labeling.utils.theme import get_theme
 
     t = get_theme()
-    return (
-        get_dialog_style()
-        + f"""
+    return get_dialog_style() + f"""
         .secondary-button {{
             background-color: {t["surface"]};
             color: {t["text"]};
@@ -74,7 +72,6 @@ def _get_overview_style() -> str:
             background-color: {t["primary_pressed"]};
         }}
     """
-    )
 
 
 class OverviewDialog(QtWidgets.QDialog):
@@ -105,8 +102,8 @@ class OverviewDialog(QtWidgets.QDialog):
         self.setWindowTitle(self.tr("Overview"))
         self.setWindowFlags(
             self.windowFlags()
-            | Qt.WindowMinimizeButtonHint
-            | Qt.WindowMaximizeButtonHint
+            | Qt.WindowType.WindowMinimizeButtonHint
+            | Qt.WindowType.WindowMaximizeButtonHint
         )
         self.resize(960, 480)
         self.move_to_center()
@@ -117,9 +114,11 @@ class OverviewDialog(QtWidgets.QDialog):
         self.populate_table()
 
         layout.addWidget(self.table)
-        self.table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.table.setEditTriggers(
+            QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers
+        )
         self.table.horizontalHeader().setSectionResizeMode(
-            QtWidgets.QHeaderView.ResizeToContents
+            QtWidgets.QHeaderView.ResizeMode.ResizeToContents
         )
         self.table.cellDoubleClicked.connect(self.on_cell_double_clicked)
 
@@ -163,11 +162,15 @@ class OverviewDialog(QtWidgets.QDialog):
         self.toggle_button.clicked.connect(self.toggle_info)
 
         range_and_export_layout = QHBoxLayout()
-        range_and_export_layout.addWidget(self.toggle_button, 0, Qt.AlignLeft)
+        range_and_export_layout.addWidget(
+            self.toggle_button, 0, Qt.AlignmentFlag.AlignLeft
+        )
         range_and_export_layout.addStretch(1)
         range_and_export_layout.addLayout(range_layout)
         range_and_export_layout.addStretch(1)
-        range_and_export_layout.addWidget(self.export_button, 0, Qt.AlignRight)
+        range_and_export_layout.addWidget(
+            self.export_button, 0, Qt.AlignmentFlag.AlignRight
+        )
 
         layout.addLayout(range_and_export_layout)
 
@@ -175,14 +178,14 @@ class OverviewDialog(QtWidgets.QDialog):
 
         self.setStyleSheet(_get_overview_style())
 
-        self.exec_()
+        self.exec()
 
     def move_to_center(self):
         """
         Move the dialog to the center of the screen.
         """
         qr = self.frameGeometry()
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        cp = self.screen().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
@@ -213,7 +216,7 @@ class OverviewDialog(QtWidgets.QDialog):
             len(self.image_file_list),
             self,
         )
-        progress_dialog.setWindowModality(Qt.WindowModal)
+        progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
         progress_dialog.setWindowTitle(self.tr("Progress"))
         progress_dialog.setMinimumWidth(400)
         progress_dialog.setMinimumHeight(150)
@@ -385,7 +388,7 @@ class OverviewDialog(QtWidgets.QDialog):
                         item.setBackground(highlight_brush)
                     self.table.setItem(row, col, item)
             self.table.horizontalHeader().setSectionResizeMode(
-                QtWidgets.QHeaderView.Stretch
+                QtWidgets.QHeaderView.ResizeMode.Stretch
             )
 
     def update_range(self):
