@@ -37,6 +37,7 @@ x_anylabeling_cvhub520.egg-info
 #  before PyInstaller builds the exe, so as to inject date/other info into it.
 *.manifest
 *.spec
+!packaging/pyinstaller/specs/*.spec
 
 # Installer logs
 pip-log.txt
