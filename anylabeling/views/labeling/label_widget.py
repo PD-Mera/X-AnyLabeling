@@ -254,6 +254,7 @@ class LabelingWidget(LabelDialog):
             self.tr(
                 "Supported search modes:\n"
                 "- Text: plain text search\n"
+                "- Index: #N (e.g., #1, #10)\n"
                 "- Regex: <pattern> (e.g., <\\.png$>)\n"
                 "- Attributes: difficult::1, gid::0, shape::1, label::xxx, type::xxx\n"
                 "- Score range: score::[0,0.5], score::(0,0.6], score::[0,0.6), score::(0,0.6)\n"
@@ -889,45 +890,11 @@ class LabelingWidget(LabelDialog):
             tip=self.tr("Union multiple selected rectangle shapes"),
             enabled=False,
         )
-        hbb_to_obb = action(
-            self.tr("Convert HBB to OBB"),
-            lambda: utils.shape_conversion(self, "hbb_to_obb"),
+        shape_converter = action(
+            self.tr("Shape Converter"),
+            lambda: utils.open_shape_converter(self),
             icon="convert",
-            tip=self.tr(
-                "Perform conversion from horizontal bounding box to oriented bounding box"
-            ),
-        )
-        obb_to_hbb = action(
-            self.tr("Convert OBB to HBB"),
-            lambda: utils.shape_conversion(self, "obb_to_hbb"),
-            icon="convert",
-            tip=self.tr(
-                "Perform conversion from oriented bounding box to horizontal bounding box"
-            ),
-        )
-        polygon_to_hbb = action(
-            self.tr("Convert Polygon to HBB"),
-            lambda: utils.shape_conversion(self, "polygon_to_hbb"),
-            icon="convert",
-            tip=self.tr(
-                "Perform conversion from polygon to horizontal bounding box"
-            ),
-        )
-        polygon_to_obb = action(
-            self.tr("Convert Polygon to OBB"),
-            lambda: utils.shape_conversion(self, "polygon_to_obb"),
-            icon="convert",
-            tip=self.tr(
-                "Perform conversion from polygon to oriented bounding box"
-            ),
-        )
-        circle_to_polygon = action(
-            self.tr("Convert Circle to Polygon"),
-            lambda: utils.shape_conversion(self, "circle_to_polygon"),
-            icon="convert",
-            tip=self.tr(
-                "Perform conversion from circle to polygon with user-specified points"
-            ),
+            tip=self.tr("Open shape converter"),
         )
         open_chatbot = action(
             self.tr("ChatBot"),
@@ -1834,11 +1801,7 @@ class LabelingWidget(LabelDialog):
                 gid_manager,
                 shape_manager,
                 None,
-                hbb_to_obb,
-                obb_to_hbb,
-                polygon_to_hbb,
-                polygon_to_obb,
-                circle_to_polygon,
+                shape_converter,
             ),
         )
         utils.add_actions(
@@ -5811,23 +5774,29 @@ class LabelingWidget(LabelDialog):
 
         search_pattern = parse_search_pattern(pattern) if pattern else None
 
-        for filename in utils.scan_all_images(dirpath):
+        for file_index, filename in enumerate(
+            utils.scan_all_images(dirpath), start=1
+        ):
             if search_pattern:
-                if not matches_filename(filename, search_pattern):
-                    continue
-
-                if search_pattern.mode == "attribute":
-                    label_file = osp.splitext(filename)[0] + ".json"
-                    if self.output_dir:
-                        label_file_without_path = osp.basename(label_file)
-                        label_file = (
-                            self.output_dir + "/" + label_file_without_path
-                        )
-
-                    if not matches_label_attribute(
-                        filename, label_file, search_pattern
-                    ):
+                if search_pattern.mode == "index":
+                    if search_pattern.index != file_index:
                         continue
+                else:
+                    if not matches_filename(filename, search_pattern):
+                        continue
+
+                    if search_pattern.mode == "attribute":
+                        label_file = osp.splitext(filename)[0] + ".json"
+                        if self.output_dir:
+                            label_file_without_path = osp.basename(label_file)
+                            label_file = (
+                                self.output_dir + "/" + label_file_without_path
+                            )
+
+                        if not matches_label_attribute(
+                            filename, label_file, search_pattern
+                        ):
+                            continue
 
             image_files.append(filename)
             label_file = osp.splitext(filename)[0] + ".json"
