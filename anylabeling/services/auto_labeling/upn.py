@@ -77,7 +77,7 @@ class UPN(Model):
         valid_prompt_types = ["fine_grained_prompt", "coarse_grained_prompt"]
         if self.prompt_type not in valid_prompt_types:
             logger.warning(f"""
-                            ⚠️ Invalid prompt type: {self.prompt_type}. 
+                            ⚠️ Invalid prompt type: {self.prompt_type}.
                             Please use one of the following: {valid_prompt_types}.
                             """)
 

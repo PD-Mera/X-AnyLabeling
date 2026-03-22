@@ -540,9 +540,9 @@ class NavigatorDialog(QtWidgets.QDialog):
 
         percentage_label = QLabel("%")
         percentage_label.setStyleSheet(f"""
-            QLabel {{ 
-                color: {t["text_secondary"]}; 
-                font-size: 10px; 
+            QLabel {{
+                color: {t["text_secondary"]};
+                font-size: 10px;
                 font-weight: 500;
                 background: transparent;
                 border: none;
@@ -557,9 +557,9 @@ class NavigatorDialog(QtWidgets.QDialog):
         zoom_out_icon.setFixedSize(16, 16)
         zoom_out_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         zoom_out_icon.setStyleSheet(f"""
-            QLabel {{ 
-                color: {t["text_secondary"]}; 
-                font-size: 14px; 
+            QLabel {{
+                color: {t["text_secondary"]};
+                font-size: 14px;
                 font-weight: bold;
                 background: transparent;
             }}
@@ -575,9 +575,9 @@ class NavigatorDialog(QtWidgets.QDialog):
         zoom_in_icon.setFixedSize(16, 16)
         zoom_in_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         zoom_in_icon.setStyleSheet(f"""
-            QLabel {{ 
-                color: {t["text_secondary"]}; 
-                font-size: 14px; 
+            QLabel {{
+                color: {t["text_secondary"]};
+                font-size: 14px;
                 font-weight: bold;
                 background: transparent;
             }}

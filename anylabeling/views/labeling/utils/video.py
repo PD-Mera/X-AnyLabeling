@@ -314,9 +314,10 @@ def extract_frames_from_video(self, input_file, out_dir):
                         QApplication.processEvents()
                         time.sleep(0.5)
 
-                        stdout, stderr = (
-                            process.communicate()
-                        )  # Get final output
+                        (
+                            stdout,
+                            stderr,
+                        ) = process.communicate()  # Get final output
                         if process.returncode != 0:
                             logger.error(
                                 f"ffmpeg failed with exit code {process.returncode}"

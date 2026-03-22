@@ -158,8 +158,8 @@ def _subprocess_kwargs():
     kwargs = {}
     if platform.system() == "Windows":
         kwargs["creationflags"] = (
-            subprocess.CREATE_NO_WINDOW  # hide console flash
-        )
+            subprocess.CREATE_NO_WINDOW
+        )  # hide console flash
     return kwargs
 
 
