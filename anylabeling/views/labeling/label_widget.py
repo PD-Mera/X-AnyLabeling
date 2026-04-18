@@ -75,6 +75,7 @@ from .widgets import (
     VQADialog,
     CrosshairSettingsDialog,
     FileDialogPreview,
+    PPOCRDialog,
     ShapeModifyDialog,
     GroupIDFilterComboBox,
     LabelDialog,
@@ -95,6 +96,12 @@ from .widgets import (
 
 LABEL_COLORMAP = utils.label_colormap()
 LABEL_OPACITY = 128
+
+
+def _measure_text_width(font_metrics, text):
+    if hasattr(font_metrics, "horizontalAdvance"):
+        return font_metrics.horizontalAdvance(text)
+    return font_metrics.width(text)
 
 
 class LabelingWidget(LabelDialog):
@@ -961,6 +968,13 @@ class LabelingWidget(LabelDialog):
             icon="ragdoll",
             tip=self.tr("Open classifier dialog"),
         )
+        open_paddleocr = action(
+            self.tr("PaddleOCR"),
+            self.open_paddleocr,
+            shortcuts["open_paddleocr"],
+            icon="paddlepaddle",
+            tip=self.tr("Open PaddleOCR dialog"),
+        )
         documentation = action(
             self.tr("Documentation"),
             self.documentation,
@@ -1724,6 +1738,7 @@ class LabelingWidget(LabelDialog):
             open_chatbot=open_chatbot,
             open_vqa=open_vqa,
             open_classifier=open_classifier,
+            open_paddleocr=open_paddleocr,
             toggle_auto_labeling_widget=toggle_auto_labeling_widget,
             digit_shortcut_manager=digit_shortcut_manager,
             label_manager=label_manager,
@@ -1857,6 +1872,7 @@ class LabelingWidget(LabelDialog):
             recent_files=QtWidgets.QMenu(self.tr("Open Recent")),
             label_list=label_menu,
         )
+        self.menus.recent_files.aboutToShow.connect(self.update_file_menu)
         (
             self.label_filter_menu,
             self.gid_filter_menu,
@@ -2073,6 +2089,7 @@ class LabelingWidget(LabelDialog):
             open_chatbot,
             open_vqa,
             open_classifier,
+            open_paddleocr,
             None,
             fit_width,
             zoom,
@@ -3067,6 +3084,18 @@ class LabelingWidget(LabelDialog):
         else:
             self.vqa_window.show()
 
+    def open_paddleocr(self):
+        if not hasattr(self, "ppocr_window") or self.ppocr_window is None:
+            self.ppocr_window = PPOCRDialog(self)
+            self.ppocr_window.setAttribute(
+                Qt.WidgetAttribute.WA_DeleteOnClose, False
+            )
+        if self.ppocr_window.isVisible():
+            self.ppocr_window.raise_()
+            self.ppocr_window.activateWindow()
+        else:
+            self.ppocr_window.show()
+
     def open_classifier(self):
         if not self.image_list:
             self.error_message(
@@ -3318,6 +3347,22 @@ class LabelingWidget(LabelDialog):
         menu = self.menus.recent_files
         menu.clear()
         files = [f for f in self.recent_files if f != current and exists(f)]
+        if self.last_open_dir and osp.isdir(self.last_open_dir):
+            dir_name = (
+                QtCore.QFileInfo(self.last_open_dir).fileName()
+                or self.last_open_dir
+            )
+            action = QtGui.QAction(
+                utils.new_icon("folder", "svg"),
+                self.tr("Open Last Dir: %s") % dir_name,
+                self,
+            )
+            action.triggered.connect(
+                functools.partial(self.load_recent_dir, self.last_open_dir)
+            )
+            menu.addAction(action)
+            if files:
+                menu.addSeparator()
         for i, f in enumerate(files):
             icon = utils.new_icon("labels")
             action = QtGui.QAction(
@@ -3720,12 +3765,12 @@ class LabelingWidget(LabelDialog):
             if hasattr(self, "grid_layout_container"):
                 font_metrics = QFontMetrics(self.grid_layout_container.font())
             else:
-                font_metrics = QLabel().font()
+                font_metrics = QFontMetrics(QLabel().font())
             available_width = self.scroll_area.width() - 30
             property_display = property
-            if font_metrics.width(property) > available_width:
+            if _measure_text_width(font_metrics, property) > available_width:
                 while (
-                    font_metrics.width(property_display + "...")
+                    _measure_text_width(font_metrics, property_display + "...")
                     > available_width
                     and len(property_display) > 1
                 ):
@@ -3747,18 +3792,19 @@ class LabelingWidget(LabelDialog):
                 main_layout.setSpacing(2)
 
                 def get_truncated_text(text, max_width):
-                    if font_metrics.width(text) <= max_width:
+                    if _measure_text_width(font_metrics, text) <= max_width:
                         return text, text
                     truncated = text
                     while (
-                        font_metrics.width(truncated + "...") > max_width
+                        _measure_text_width(font_metrics, truncated + "...")
+                        > max_width
                         and len(truncated) > 1
                     ):
                         truncated = truncated[:-1]
                     return truncated + "...", text
 
                 def get_button_width(text):
-                    return font_metrics.width(text) + 30
+                    return _measure_text_width(font_metrics, text) + 30
 
                 def create_radio_button_with_handler(
                     display_text, original_text, prop, shape_idx
@@ -5422,6 +5468,9 @@ class LabelingWidget(LabelDialog):
     def load_recent(self, filename):
         if self.may_continue():
             self.load_file(filename)
+
+    def load_recent_dir(self, dirpath):
+        self.import_image_folder(dirpath)
 
     def open_checked_image(self, end_index, step, load=True):
         if not self.may_continue():
