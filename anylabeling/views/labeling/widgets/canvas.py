@@ -1,5 +1,6 @@
 """This module defines Canvas widget - the core component for drawing image labels"""
 
+import copy
 import math
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import Qt, QTimer
@@ -2523,8 +2524,8 @@ class Canvas(
             and self.current is not None
             and len(self.current.points) >= 2
         ):
-            drawing_shape = self.current.copy()
-            drawing_shape.add_point(self.line[1])
+            drawing_shape = copy.copy(self.current)
+            drawing_shape.points = self.current.points + [self.line[1]]
             drawing_shape.fill = True
             drawing_shape.paint(p)
         if (
@@ -2534,7 +2535,7 @@ class Canvas(
             and len(self.current.points) == 3
             and len(self.line.points) >= 2
         ):
-            drawing_shape = self.current.copy()
+            drawing_shape = copy.copy(self.current)
             drawing_shape.points = list(self.current.points) + [
                 QtCore.QPointF(self.line[1].x(), self.line[1].y())
             ]
@@ -2725,7 +2726,7 @@ class Canvas(
 
             pen = QtGui.QPen(QtGui.QColor("#000000"), 8, Qt.PenStyle.SolidLine)
             p.setPen(pen)
-            for _, _, text_pos, label_text in labels:
+            for shape, _, text_pos, label_text in labels:
                 if not shape.visible:
                     continue
                 p.drawText(text_pos, label_text)
@@ -3486,7 +3487,9 @@ class Canvas(
             ):
                 index = self.shapes.index(self.selected_shapes[0])
                 if (
-                    self.shapes_backups[-1][index].points
+                    self.shapes_backups
+                    and index < len(self.shapes_backups[-1])
+                    and self.shapes_backups[-1][index].points
                     != self.shapes[index].points
                 ):
                     self.store_shapes()

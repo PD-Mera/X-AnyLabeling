@@ -1,3 +1,4 @@
+import ast
 import os
 import re
 import json
@@ -1405,7 +1406,7 @@ class LabelDialog(QtWidgets.QDialog):
     def add_linking_pair(self):
         linking_text = self.linking_input.text()
         try:
-            linking_pairs = eval(linking_text)
+            linking_pairs = ast.literal_eval(linking_text)
             if (
                 isinstance(linking_pairs, list)
                 and len(linking_pairs) == 2
@@ -1449,7 +1450,9 @@ class LabelDialog(QtWidgets.QDialog):
         self.linking_list.takeItem(self.linking_list.row(list_item))
         item_widget.deleteLater()
 
-    def reset_linking(self, kie_linking=[]):
+    def reset_linking(self, kie_linking=None):
+        if kie_linking is None:
+            kie_linking = []
         self.linking_list.clear()
         for linking_pair in kie_linking:
             self.linking_list.addItem(str(linking_pair))
@@ -1599,8 +1602,10 @@ class LabelDialog(QtWidgets.QDialog):
         group_id=None,
         description=None,
         difficult=False,
-        kie_linking=[],
+        kie_linking=None,
     ):
+        if kie_linking is None:
+            kie_linking = []
         if self._fit_to_content["row"]:
             self.label_list.setMinimumHeight(
                 self.label_list.sizeHintForRow(0) * self.label_list.count() + 2

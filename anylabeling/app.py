@@ -21,7 +21,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import yaml
-from PyQt6 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 from anylabeling.app_info import (
     __appname__,
@@ -54,6 +54,12 @@ def main():
     )
     subparsers.add_parser("version", help="show version information")
     subparsers.add_parser("config", help="show config file path")
+    train_worker_parser = subparsers.add_parser(
+        "train-worker", help=argparse.SUPPRESS
+    )
+    train_worker_parser.add_argument(
+        "--payload", required=True, help=argparse.SUPPRESS
+    )
 
     convert_parser = subparsers.add_parser(
         "convert", help="run conversion tasks"
@@ -109,6 +115,15 @@ def main():
             "If not specified, Qt will auto-detect the platform."
         ),
         default=None,
+    )
+    parser.add_argument(
+        "--qt-image-allocation-limit",
+        type=int,
+        help=(
+            "Override Qt image allocation limit in MB. "
+            "Qt default is 256 MB. Use 0 to disable the limit."
+        ),
+        default=argparse.SUPPRESS,
     )
     parser.add_argument(
         "--filename",
@@ -209,6 +224,10 @@ def main():
             "anylabeling.views.common.converter",
             fromlist=["handle_convert_command"],
         ).handle_convert_command(args),
+        "train-worker": lambda args: __import__(
+            "anylabeling.services.auto_training.ultralytics.trainer",
+            fromlist=["run_training_worker_command"],
+        ).run_training_worker_command(args),
     }
 
     if args.command and args.command in special:
@@ -302,6 +321,16 @@ def main():
     QtCore.QCoreApplication.setAttribute(
         QtCore.Qt.ApplicationAttribute.AA_ShareOpenGLContexts
     )
+    qt_image_allocation_limit = config.get("qt_image_allocation_limit")
+    if qt_image_allocation_limit is not None:
+        QtGui.QImageReader.setAllocationLimit(qt_image_allocation_limit)
+        if qt_image_allocation_limit == 0:
+            logger.info("🖼️ Disabled Qt image allocation limit")
+        else:
+            logger.info(
+                "🖼️ Set Qt image allocation limit to "
+                f"{qt_image_allocation_limit} MB"
+            )
 
     app = QtWidgets.QApplication(sys.argv)
     init_theme(config.get("theme", "light"))
